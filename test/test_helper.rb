@@ -34,10 +34,6 @@ module FakeMaster
   end
 end
 Master.runner = FakeMaster::RUNNER
-Master.streamer = lambda do |*args, &block|
-  FakeMaster.calls << args
-  %w[==>\ Starting\ build()... Compiling\ x ==>\ Finished].each { |l| block.call(l.tr("\\", "")) }
-end
 
 module ActiveSupport
   class TestCase

@@ -3,10 +3,8 @@
 # Every job as a tree per package (index, filtered by words), one job with
 # its story and log (show), and the operator's commands on it.
 class JobsController < ApplicationController
-  include ActionController::Live
-
   before_action :require_operator, only: %i[retry requeue]
-  before_action :find_job, only: %i[show stream retry requeue]
+  before_action :find_job, only: %i[show retry requeue]
 
   def index
     @words = params[:q].to_s.split
@@ -18,34 +16,11 @@ class JobsController < ApplicationController
   def show
     @repo = @job.repo
     @generated = @job.generated
-    # a running job's log is filled by the live stream; only a finished job's
-    # archived log is fetched on load (saves a round trip while building)
-    @log = @job.running? ? nil : @job.log_lines
-  end
-
-  # A running job's journal, live, as server-sent events: "reset" once the
-  # stream is open (the page drops what it rendered; the master's follow
-  # starts with the last lines), "line" per line, "end" when the job is no
-  # longer running. The connection holds a puma thread and an ssh channel
-  # for as long as the page is open.
-  def stream
-    response.headers["Content-Type"] = "text/event-stream"
-    response.headers["Cache-Control"] = "no-cache"
-    response.headers["X-Accel-Buffering"] = "no"
-    sse = SSE.new(response.stream)
-    unless @job.running?
-      sse.write({ state: @job.state }, event: "end")
-      return
-    end
-    sse.write({}, event: "reset")
-    Master.stream("follow", @job.id) { |line| sse.write({ line: line }, event: "line") }
-    sse.write({ state: "finished" }, event: "end")
-  rescue Master::Error => e
-    sse.write({ error: e.message }, event: "end")
-  rescue ActionController::Live::ClientDisconnected, IOError
-    nil
-  ensure
-    sse&.close
+    # A running job's log is the tail of what its journal has streamed to the
+    # master so far; the page refetches it every few seconds (the refresh
+    # controller). journalctl -f cannot follow a journald-remote journal, so
+    # this polls the tail rather than streaming.
+    @log = @job.log_lines
   end
 
   def retry

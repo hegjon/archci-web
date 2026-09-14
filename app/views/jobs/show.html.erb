@@ -1,6 +1,5 @@
 <% content_for :title, "#{@job.pkgbase} #{@job.version} #{@job.arch}" %>
 <% content_for :refresh, @job.running? ? 5000 : 0 %>
-<% content_for :follow, stream_job_path(@job) if @job.running? %>
 <section class="job">
   <h2><%= @job.pkgbase %> <%= @job.version %> <span class="muted"><%= @job.arch %>, from <%= @job.origin %></span> <%= state_badge(@job.state) %></h2>
   <p class="story"><%= @job.story %></p>
@@ -22,11 +21,10 @@
 
 <section>
   <% lines = @log&.lines || [] %>
-  <h2>log <span class="muted" id="log-count"><%= @job.running? ? "live" : "#{lines.size} lines" %><% if @log&.error_at %> · <a href="#L<%= @log.error_at + 1 %>">first error at <%= @log.error_at + 1 %></a><% end %></span></h2>
-  <% if lines.empty? && !@job.running? %>
-    <p class="muted"><%= @job.pending? ? "not started yet" : "no log" %></p>
+  <h2>log <span class="muted"><%= @job.running? ? "#{lines.size} lines so far" : "#{lines.size} lines" %><% if @log&.error_at %> · <a href="#L<%= @log.error_at + 1 %>">first error at <%= @log.error_at + 1 %></a><% end %></span></h2>
+  <% if lines.empty? %>
+    <p class="muted"><%= @job.pending? ? "not started yet" : (@job.running? ? "nothing streamed yet" : "no log") %></p>
   <% else %>
-    <%# a running job's log is kept across the page's refreshes (data-turbo-permanent): the stream fills it %>
-    <pre class="log" id="log" <%= 'data-turbo-permanent' if @job.running? %>><% lines.each_with_index do |line, i| %><span class="line<%= ' err' if @log&.error_at == i %>" id="L<%= i + 1 %>"><span class="n"><%= i + 1 %></span><%= line %></span><% end %></pre>
+    <pre class="log" id="log"><% lines.each_with_index do |line, i| %><span class="line<%= ' err' if @log&.error_at == i %>" id="L<%= i + 1 %>"><span class="n"><%= i + 1 %></span><%= line %></span><% end %></pre>
   <% end %>
 </section>

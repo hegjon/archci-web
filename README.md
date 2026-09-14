@@ -25,10 +25,9 @@ scroll position stay put. The look is a terminal in
   `failed` and `sources` in the header are that filter
 - `/jobs/<id>` one job: its story, the source package and network it had,
   its stats while it runs, and its log opened at the first error; retry
-  and requeue buttons for the operator. A running job's log is live: the
-  page opens a stream (`/jobs/<id>/stream`, server-sent events) that the
-  app feeds from the master's `follow <id>`, a `journalctl -f` on the
-  workers' streamed journals, and reloads when the job finishes
+  and requeue buttons for the operator. A running job's log is
+  the tail of what its journal has streamed to the master so far; the page
+  refetches it every few seconds until the job finishes
 
 The queue commands ask for the operator's password (`ARCHCI_WEB_PASSWORD`,
 HTTP basic auth); without one configured they are off. The master logs
@@ -79,8 +78,7 @@ app/models/farm.rb       the snapshot: counts, hosts, jobs, the tree per package
 app/models/job.rb        one job: fields, story, its log from the master
 app/controllers/         farm (the front page), jobs (tree, one job, retry, requeue), enqueue
 app/views/               the pages; layouts/application.html.erb is the frame (header, footer)
-app/javascript/controllers/refresh_controller.js   the timed Turbo morph
-app/javascript/controllers/follow_controller.js    a running job's live log, from the stream
+app/javascript/controllers/refresh_controller.js   the timed Turbo morph (re-polls a running job's log)
 app/assets/stylesheets/application.css             Tokyo Night
 deploy/                  the systemd unit, the environment file, a Caddyfile
 bin/deploy               update a running deployment: fetch, bundle, precompile, restart
