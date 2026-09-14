@@ -34,12 +34,37 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "body[data-refresh-interval-value='0']"
   end
 
-  test "a running job's page refreshes and shows the journal so far" do
-    get job_path("5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64")
+  test "a running job's page refreshes, follows the stream and keeps its log across morphs" do
+    id = "5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64"
+    get job_path(id)
     assert_response :success
-    assert_select "body[data-refresh-interval-value='5000']"
+    assert_select "body[data-refresh-interval-value='5000'][data-controller='refresh follow'][data-follow-url-value=?]", stream_job_path(id)
+    assert_select "pre#log[data-turbo-permanent]"
     assert_select "form[action*=requeue]"
     assert_select "form[action*=retry]", 0
+  end
+
+  test "a finished job's page neither follows nor keeps its log" do
+    get job_path("5-1788893881-hegjon-test,grub,2:2.14-1,x86_64")
+    assert_select "body[data-controller='refresh']"
+    assert_select "pre#log[data-turbo-permanent]", 0
+  end
+
+  test "the stream sends the master's follow as server-sent events" do
+    id = "5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64"
+    get stream_job_path(id)
+    assert_response :success
+    assert_equal "text/event-stream", response.media_type
+    assert_includes FakeMaster.calls, [ "follow", id ]
+    assert_match(/event: reset/, response.body)
+    assert_match(/event: line\ndata: {"line":"Compiling x"}/, response.body)
+    assert_match(/event: end\ndata: {"state":"finished"}/, response.body)
+  end
+
+  test "the stream of a job that is not running ends at once" do
+    get stream_job_path("5-1788893881-hegjon-test,grub,2:2.14-1,x86_64")
+    assert_match(/event: end\ndata: {"state":"failed"}/, response.body)
+    assert_not FakeMaster.calls.any? { |c| c.first == "follow" }
   end
 
   test "an unknown job is not found" do

@@ -3,8 +3,10 @@
 # Every job as a tree per package (index, filtered by words), one job with
 # its story and log (show), and the operator's commands on it.
 class JobsController < ApplicationController
+  include ActionController::Live
+
   before_action :require_operator, only: %i[retry requeue]
-  before_action :find_job, only: %i[show retry requeue]
+  before_action :find_job, only: %i[show stream retry requeue]
 
   def index
     @words = params[:q].to_s.split
@@ -15,6 +17,31 @@ class JobsController < ApplicationController
 
   def show
     @log = @job.log_lines
+  end
+
+  # A running job's journal, live, as server-sent events: "reset" once the
+  # stream is open (the page drops what it rendered; the master's follow
+  # starts with the last lines), "line" per line, "end" when the job is no
+  # longer running. The connection holds a puma thread and an ssh channel
+  # for as long as the page is open.
+  def stream
+    response.headers["Content-Type"] = "text/event-stream"
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["X-Accel-Buffering"] = "no"
+    sse = SSE.new(response.stream)
+    unless @job.running?
+      sse.write({ state: @job.state }, event: "end")
+      return
+    end
+    sse.write({}, event: "reset")
+    Master.stream("follow", @job.id) { |line| sse.write({ line: line }, event: "line") }
+    sse.write({ state: "finished" }, event: "end")
+  rescue Master::Error => e
+    sse.write({ error: e.message }, event: "end")
+  rescue ActionController::Live::ClientDisconnected, IOError
+    nil
+  ensure
+    sse&.close
   end
 
   def retry

@@ -14,7 +14,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-controller="refresh" data-refresh-interval-value="<%= content_for?(:refresh) ? yield(:refresh) : 5000 %>">
+  <body data-controller="refresh<%= ' follow' if content_for?(:follow) %>" data-refresh-interval-value="<%= content_for?(:refresh) ? yield(:refresh) : 5000 %>"<% if content_for?(:follow) %> data-follow-url-value="<%= yield(:follow) %>"<% end %>>
     <header class="top">
       <div class="brand">
         <%= link_to root_path, class: "name" do %>▣ archci<% end %>
