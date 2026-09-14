@@ -11,13 +11,13 @@
     <tbody>
       <% @packages.each do |name, jobs| %>
         <tr class="pkg">
-          <td colspan="5"><b><%= name %></b> <span class="muted"><%= jobs.map(&:version).uniq.join(", ") %></span></td>
+          <td colspan="5"><%= package_status(jobs) %> <b><%= name %></b> <span class="muted"><%= jobs.map(&:version).uniq.join(", ") %></span></td>
           <td class="muted"><%= jobs.first.origin %></td>
         </tr>
         <% versions = jobs.map(&:version).uniq.size %>
         <% jobs.each_with_index do |j, i| %>
           <tr class="job">
-            <td class="branch"><span class="muted"><%= i == jobs.size - 1 ? "└─" : "├─" %></span> <%= link_to (versions > 1 ? "#{j.arch} #{j.version}" : j.arch), job_path(j) %></td>
+            <td class="branch"><%= status_symbol(j.state) %> <span class="muted"><%= i == jobs.size - 1 ? "└─" : "├─" %></span> <%= link_to (versions > 1 ? "#{j.arch} #{j.version}" : j.arch), job_path(j) %></td>
             <td><%= state_badge(j.state) %></td>
             <td><%= j.worker || "-" %></td>
             <td class="num"><%= j.attempt %>/<%= Job::MAX_ATTEMPTS %></td>

@@ -20,6 +20,8 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "tr.pkg", 1
     assert_select "tr.job .badge-failed"
     assert_select "tr.job .badge-done", 0
+    assert_select "tr.pkg .sym-failed"          # package row carries an aggregate status glyph
+    assert_select "tr.job td.branch .sym-failed" # each job row a status glyph
   end
 
   test "a job page shows its story, facts and log with the first error" do
