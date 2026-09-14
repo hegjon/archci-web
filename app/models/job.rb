@@ -46,6 +46,7 @@ class Job
   def to_param = id
   def repo = @data["repo"]
   def generated = @data["generated"] && Time.iso8601(@data["generated"])
+  def sources_job = @data["sources_job"]
 
   # the job's log from the master: {"lines" => [...], "error_at" => index or nil}
   def log_lines

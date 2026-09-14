@@ -7,7 +7,7 @@
   <dl class="facts">
     <dt>job</dt><dd><%= @job.id %></dd>
     <dt>commit</dt><dd><%= @job.commit %></dd>
-    <% if @job.sources %><dt>sources</dt><dd><%= @job.sources %></dd><% end %>
+    <% if @job.sources %><dt>sources</dt><dd><%= @job.sources_job ? link_to(@job.sources, job_path(@job.sources_job)) : @job.sources %></dd><% end %>
     <% if @job.network %><dt>network</dt><dd><%= @job.network %></dd><% end %>
     <% if @job.running? %><dt>phase</dt><dd><%= @job.phase || "-" %> · <%= mem(@job.rss) %> rss, <%= mem(@job.peak) %> peak, <%= mem(@job.build) %> build tree</dd><% end %>
     <dt>log</dt><dd class="muted"><%= @job.running? ? "the journal so far" : @job.log %></dd>

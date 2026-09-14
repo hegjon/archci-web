@@ -49,6 +49,8 @@ class PagesTest < ActionDispatch::IntegrationTest
     id = "5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64"
     get job_path(id)
     assert_response :success
+    # its source package links to the src job that produced it
+    assert_select "dl.facts dd a[href=?]", job_path("1-1789344688-hegjon-test,eza,0.23.5-2.1,src"), text: /\.src\.tar\.gz/
     assert_select "body[data-refresh-interval-value='5000'][data-controller='refresh follow'][data-follow-url-value=?]", stream_job_path(id)
     assert_select "pre#log[data-turbo-permanent]"
     assert_select "form[action*=requeue]", 0   # no operator password: no buttons
