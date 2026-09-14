@@ -40,11 +40,12 @@ class Farm
 
   # the tree: packages by their newest job, each with its jobs in arch order,
   # for the jobs whose fields hold every word of the filter
+  # one node per package version: [pkgbase, version, jobs], newest activity first
   def packages(words = [])
     jobs.select { |j| j.matches?(words) }
-        .group_by(&:pkgbase)
+        .group_by { |j| [ j.pkgbase, j.version ] }
         .sort_by { |_, js| -js.map(&:mtime).max.to_f }
-        .map { |name, js| [ name, js.sort_by { |j| [ j.arch_rank, j.arch, -j.mtime.to_f ] } ] }
+        .map { |(name, version), js| [ name, version, js.sort_by { |j| [ j.arch_rank, j.arch, -j.mtime.to_f ] } ] }
   end
 
   def master_version

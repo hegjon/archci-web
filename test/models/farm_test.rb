@@ -17,12 +17,17 @@ class FarmTest < ActiveSupport::TestCase
     assert_equal [ "x86_64", 1389, 2015 ], farm.built_line.first
   end
 
-  test "packages group the jobs by name, newest first, in arch order" do
+  test "packages are grouped per version, jobs in arch order" do
     farm = Farm.current
-    name, jobs = farm.packages.first
-    assert_equal "eza", name
-    assert_equal %w[src x86_64 aarch64 riscv64], jobs.map(&:arch).uniq
-    assert farm.packages(%w[failed grub]).all? { |_, js| js.all? { |j| j.failed? && j.pkgbase.include?("grub") } }
+    farm.packages.each do |name, version, jobs|
+      assert jobs.all? { |j| j.pkgbase == name && j.version == version }, "a group is one pkgbase+version"
+      assert_equal jobs.map(&:arch_rank), jobs.map(&:arch_rank).sort, "jobs in arch order"
+    end
+    # eza has jobs for two versions, so it is two groups
+    eza = farm.packages.select { |name, _, _| name == "eza" }
+    assert_equal 2, eza.size
+    assert_equal %w[0.23.5-2 0.23.5-2.1], eza.map { |_, v, _| v }.sort
+    assert farm.packages(%w[failed grub]).all? { |_, _, js| js.all? { |j| j.failed? && j.pkgbase.include?("grub") } }
     assert_empty farm.packages(%w[nosuchpackage])
   end
 
