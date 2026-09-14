@@ -22,14 +22,10 @@ Rails.application.configure do
   # config.asset_host = "http://assets.example.com"
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # TLS is normally terminated by caddy in front (deploy/Caddyfile); until a
-  # domain and certificate exist, ARCHCI_WEB_FORCE_SSL=0 runs the site on
-  # plain http so it can be reached by address. Default: on (secure).
-  ssl = ENV["ARCHCI_WEB_FORCE_SSL"] != "0"
-  config.assume_ssl = ssl
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = ssl
+  config.force_ssl = true
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
@@ -58,10 +54,6 @@ Rails.application.configure do
   config.i18n.fallbacks = true
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  # a status page reached by domain or by address; caddy in front is the guard.
-  # Set ARCHCI_WEB_HOST to lock it to one hostname.
-  config.hosts << ENV["ARCHCI_WEB_HOST"] if ENV["ARCHCI_WEB_HOST"].present?
-  config.host_authorization = { exclude: ->(req) { req.path == "/up" } }
   # config.hosts = [
   #   "example.com",     # Allow requests from example.com
   #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`

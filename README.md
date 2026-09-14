@@ -59,10 +59,10 @@ install -m 644 deploy/archci-web.service /etc/systemd/system/
 systemctl enable --now archci-web
 ```
 
-puma listens on 127.0.0.1:3000; put caddy in front (`deploy/Caddyfile`).
-With a domain, caddy fetches a TLS certificate; until then, serve plain
-http by address and set `ARCHCI_WEB_FORCE_SSL=0` in the env. `master` must
-resolve to the master's address (`/etc/hosts`), as for a worker.
+puma listens on 127.0.0.1:3000; put caddy in front (`deploy/Caddyfile`)
+with a domain, and it fetches a TLS certificate (production forces SSL, as
+Rails does by default; caddy terminates it). `master` must resolve to the
+master's address (`/etc/hosts`), as for a worker.
 
 To update a running deployment: `bin/deploy` (fetch master, install gems,
 precompile, restart).
