@@ -1,0 +1,29 @@
+<% content_for :title, "#{@job.pkgbase} #{@job.version} #{@job.arch}" %>
+<% content_for :refresh, @job.running? ? 5000 : 0 %>
+<section class="job">
+  <h2><%= @job.pkgbase %> <%= @job.version %> <span class="muted"><%= @job.arch %>, from <%= @job.origin %></span> <%= state_badge(@job.state) %></h2>
+  <p class="story"><%= @job.story %></p>
+  <dl class="facts">
+    <dt>job</dt><dd><%= @job.id %></dd>
+    <dt>commit</dt><dd><%= @job.commit %></dd>
+    <% if @job.sources %><dt>sources</dt><dd><%= @job.sources %></dd><% end %>
+    <% if @job.network %><dt>network</dt><dd><%= @job.network %></dd><% end %>
+    <% if @job.running? %><dt>phase</dt><dd><%= @job.phase || "-" %> · <%= mem(@job.rss) %> rss, <%= mem(@job.peak) %> peak, <%= mem(@job.build) %> build tree</dd><% end %>
+    <dt>log</dt><dd class="muted"><%= @job.running? ? "the journal so far" : @job.log %></dd>
+  </dl>
+  <div class="actions">
+    <% if @job.retryable? %><%= button_to "retry (a fresh first attempt)", retry_job_path(@job), class: "btn", form: { data: { turbo_confirm: "Retry #{@job.pkgbase} #{@job.arch} from scratch?" } } %><% end %>
+    <% if @job.requeueable? %><%= button_to "requeue (keep the attempts)", requeue_job_path(@job), class: "btn", form: { data: { turbo_confirm: "Put #{@job.pkgbase} #{@job.arch} back in pending?" } } %><% end %>
+    <% if @job.log_lines.nil? %><% end %>
+  </div>
+</section>
+
+<section>
+  <h2>log <span class="muted"><%= @log.lines.size %> lines<% if @log.error_at %> · <a href="#L<%= @log.error_at + 1 %>">first error at <%= @log.error_at + 1 %></a><% end %></span></h2>
+  <% if @log.lines.empty? %>
+    <p class="muted"><%= @job.pending? ? "not started yet" : "nothing streamed yet" %></p>
+  <% else %>
+    <pre class="log"><% @log.lines.each_with_index do |line, i| %><span class="line<%= ' err' if @log.error_at == i %>" id="L<%= i + 1 %>"><span class="n"><%= i + 1 %></span><%= line %></span>
+<% end %></pre>
+  <% end %>
+</section>

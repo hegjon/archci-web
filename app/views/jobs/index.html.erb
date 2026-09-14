@@ -1,0 +1,32 @@
+<% content_for :title, @words.empty? ? "jobs" : "jobs /#{@words.join(' ')}" %>
+<section>
+  <%= form_with url: jobs_path, method: :get, class: "filter", data: { turbo_frame: "_top" } do |f| %>
+    <label for="q">/</label>
+    <%= f.text_field :q, id: "q", value: @words.join(" "), placeholder: "words: state, package, version, arch, worker, origin  (failed aarch64 python)", autocomplete: "off", data: { turbo_permanent: true } %>
+    <span class="muted"><%= @total %> package<%= "s" unless @total == 1 %><%= ", first #{Farm::PAGE} shown" if @total > Farm::PAGE %></span>
+  <% end %>
+
+  <table class="tree">
+    <thead><tr><th>package / job</th><th>state</th><th>worker</th><th class="num">tries</th><th>when</th><th>story</th></tr></thead>
+    <tbody>
+      <% @packages.each do |name, jobs| %>
+        <tr class="pkg">
+          <td colspan="5"><b><%= name %></b> <span class="muted"><%= jobs.map(&:version).uniq.join(", ") %></span></td>
+          <td class="muted"><%= jobs.first.origin %></td>
+        </tr>
+        <% versions = jobs.map(&:version).uniq.size %>
+        <% jobs.each_with_index do |j, i| %>
+          <tr class="job">
+            <td class="branch"><span class="muted"><%= i == jobs.size - 1 ? "└─" : "├─" %></span> <%= link_to (versions > 1 ? "#{j.arch} #{j.version}" : j.arch), job_path(j) %></td>
+            <td><%= state_badge(j.state) %></td>
+            <td><%= j.worker || "-" %></td>
+            <td class="num"><%= j.attempt %>/<%= Job::MAX_ATTEMPTS %></td>
+            <td class="muted"><%= j.at %></td>
+            <td class="story"><%= j.story %></td>
+          </tr>
+        <% end %>
+      <% end %>
+      <% if @packages.empty? %><tr><td colspan="6" class="muted">no job matches</td></tr><% end %>
+    </tbody>
+  </table>
+</section>

@@ -1,0 +1,114 @@
+<% content_for :title, "farm" %>
+<section class="counters">
+  <div class="counter">
+    <h2>queue</h2>
+    <p>
+      <%= link_to "pending #{@farm.queue['pending']}", jobs_path(q: "pending") %>
+      <%= link_to "running #{@farm.queue['running']}", jobs_path(q: "running") %>
+      <%= link_to "failed #{@farm.queue['failed']}", jobs_path(q: "failed") %>
+      <%= link_to "done #{@farm.queue['done']}", jobs_path(q: "done") %>
+      <span class="muted">(<%= @farm.done_last_hour %> in the last hour)</span>
+    </p>
+  </div>
+  <div class="counter">
+    <h2>outstanding</h2>
+    <p><%= @farm.outstanding['updates'] %> update(s), <%= @farm.outstanding['backlog'] %> unbuilt</p>
+  </div>
+  <div class="counter">
+    <h2>built</h2>
+    <p><% @farm.built_line.each do |arch, built, tracked| %><span class="pair"><%= arch %> <b><%= built %></b>/<%= tracked %></span> <% end %></p>
+  </div>
+  <% if @farm.signer %>
+    <div class="counter">
+      <h2>released</h2>
+      <p>
+        <% @farm.signer["release"].to_h.each do |arch, r| %>
+          <span class="pair"><%= arch %> <b><%= r["packages"] || "unreachable" %></b><%= " pkg" if r["packages"] %></span>
+        <% end %>
+        <% waiting = @farm.signer.dig("staging", "waiting") %>
+        <span class="pair muted">unsigned <b><%= waiting %></b> in staging<%= " (oldest #{duration_short(@farm.signer.dig('staging', 'oldest_s'))})" if waiting.to_i.positive? %></span>
+      </p>
+    </div>
+  <% end %>
+  <div class="counter">
+    <h2>sources</h2>
+    <p><b><%= @farm.sources['ready'] %></b> packaged · <%= @farm.sources['needed'] %> to fetch · <%= @farm.sources['failed'] %> failed<% if @farm.sources['last'] %> · last <%= ago(@farm.sources['last']) %> ago<% end %></p>
+  </div>
+</section>
+
+<section>
+  <h2>hosts</h2>
+  <table>
+    <thead><tr><th>host</th><th>vendor</th><th>arch</th><th class="num">load</th><th class="num">%disk</th><th class="num">%mem</th><th class="num">threads</th><th class="num">workers</th><th class="num">active</th><th>archci</th><th class="num">seen</th></tr></thead>
+    <tbody>
+      <% @farm.hosts.each do |h| %>
+        <tr>
+          <td><%= h["host"] %></td>
+          <td class="muted"><%= h["vendor"] || "-" %></td>
+          <td><%= h["arch"] || "-" %></td>
+          <td class="num"><%= h["load"] || "-" %></td>
+          <td class="num"><%= h["disk"] || "-" %></td>
+          <td class="num"><%= h["mem"] || "-" %></td>
+          <td class="num"><%= h["cpus"] || "-" %></td>
+          <td class="num"><%= h["workers"].empty? ? "-" : h["workers"].size %></td>
+          <td class="num"><%= h["workers"].empty? ? "-" : h["building"] %></td>
+          <td><%= h["archci"] || "-" %></td>
+          <td class="num muted"><%= h["heartbeat_age_s"] ? duration_short(h["heartbeat_age_s"]) : "-" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>running <span class="muted"><%= @farm.running.size %></span></h2>
+  <% if @farm.running.empty? %>
+    <p class="muted">nothing is building</p>
+  <% else %>
+    <table>
+      <thead><tr><th class="num">elapsed</th><th>worker</th><th>arch</th><th class="num">att</th><th class="num">hb</th><th class="num">load</th><th class="num">disk</th><th class="num">mem</th><th class="num">peak</th><th>phase</th><th>origin</th><th>package</th></tr></thead>
+      <tbody>
+        <% @farm.running.each do |r| %>
+          <% job = @farm.jobs.find { |j| j.running? && j.pkgbase == r["pkgbase"] && j.arch == r["arch"] && j.worker == r["worker"] } %>
+          <tr>
+            <td class="num"><%= elapsed(r["claimed"]) %></td>
+            <td><%= r["worker"] %></td>
+            <td><%= r["arch"] %></td>
+            <td class="num"><%= r["attempt"] %></td>
+            <td class="num <%= 'warn' if r['heartbeat_age_s'].to_i > 180 %>"><%= duration_short(r["heartbeat_age_s"]) %></td>
+            <td class="num"><%= r["load"] || "-" %></td>
+            <td class="num"><%= mem(r["build"]) %></td>
+            <td class="num"><%= mem(r["rss"]) %></td>
+            <td class="num"><%= mem(r["peak"]) %></td>
+            <td><%= r["phase"] || "-" %></td>
+            <td class="muted"><%= r["origin"] %></td>
+            <td><% if job %><%= link_to "#{r['pkgbase']} #{r['version']}", job_path(job) %><% else %><%= r["pkgbase"] %> <%= r["version"] %><% end %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>
+
+<section>
+  <h2>failed <span class="muted">newest first</span> <%= link_to "all #{@farm.queue['failed']} →", jobs_path(q: "failed"), class: "more" %></h2>
+  <% if @newest_failed.empty? %>
+    <p class="muted">nothing has failed</p>
+  <% else %>
+    <table>
+      <thead><tr><th>package</th><th>arch</th><th>worker</th><th class="num">failures</th><th>gave up</th><th>last failure</th></tr></thead>
+      <tbody>
+        <% @newest_failed.each do |f| %>
+          <tr>
+            <td><%= link_to "#{f['pkgbase']} #{f['version']}", job_path(f["id"]) %></td>
+            <td><%= f["arch"] %></td>
+            <td><%= f["worker"] %></td>
+            <td class="num"><%= f["attempt"] %></td>
+            <td><%= f["final"] ? tag.span("yes", class: "red") : "no" %></td>
+            <td class="muted"><%= f["finished"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</section>

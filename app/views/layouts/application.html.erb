@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for(:title) ? "#{yield(:title)} · archci" : "archci" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#1a1b26">
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body data-controller="refresh" data-refresh-interval-value="<%= content_for?(:refresh) ? yield(:refresh) : 5000 %>">
+    <header class="top">
+      <div class="brand">
+        <%= link_to root_path, class: "name" do %>▣ archci<% end %>
+        <span class="repo"><%= @farm&.repo %></span>
+      </div>
+      <nav>
+        <%= nav_link "farm", root_path, current_page?(root_path) %>
+        <%= nav_link "jobs", jobs_path, request.path == jobs_path && params[:q].blank? %>
+        <%= nav_link "running", jobs_path(q: "running"), params[:q] == "running" %>
+        <%= nav_link "failed", jobs_path(q: "failed"), params[:q] == "failed" %>
+        <%= nav_link "sources", jobs_path(q: "src"), params[:q] == "src" %>
+      </nav>
+      <div class="status">
+        <% if @farm %>
+          <span class="dot online"></span>master seen <%= ago(@farm.generated) %> ago
+        <% else %>
+          <span class="dot offline"></span>master unreachable
+        <% end %>
+      </div>
+    </header>
+
+    <% if notice.present? %><p class="flash notice"><%= notice %></p><% end %>
+    <% if alert.present? %><p class="flash alert"><%= alert %></p><% end %>
+
+    <main>
+      <%= yield %>
+    </main>
+
+    <footer>
+      archci-web <%= Rails.configuration.x.version %>
+      <% if @farm %> · master archci <%= @farm.master_version %> · snapshot <%= @farm.generated.utc.strftime("%H:%M:%S") %>Z<% end %>
+      · <a href="https://github.com/hegjon/archci">archci</a>
+      · <a href="https://github.com/hegjon/archci-web">archci-web</a>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+# TLS and the public name in front of puma; caddy fetches the certificate.
+archci.example.org {
+	reverse_proxy 127.0.0.1:3000
+	encode zstd gzip
+}

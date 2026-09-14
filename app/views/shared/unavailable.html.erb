@@ -1,0 +1,7 @@
+<% content_for :title, "master unreachable" %>
+<section>
+  <h2>the master is unreachable</h2>
+  <p class="muted">the front end asks it over ssh as the web key, and got:</p>
+  <pre class="log"><%= @error %></pre>
+  <p class="muted">this page retries every few seconds</p>
+</section>

@@ -1,0 +1,27 @@
+# archci-web: the front end, puma on loopback; put caddy or nginx with TLS
+# in front (deploy/Caddyfile). Runs as its own user from a checkout at
+# /opt/archci-web with the gems installed there (deploy/README).
+[Unit]
+Description=archci web front end
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=archci-web
+Group=archci-web
+WorkingDirectory=/opt/archci-web
+EnvironmentFile=/etc/archci-web/env
+Environment=RAILS_ENV=production
+Environment=PORT=3000
+Environment=BIND=tcp://127.0.0.1:3000
+ExecStart=/opt/archci-web/bin/rails server
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/opt/archci-web/tmp /opt/archci-web/log
+
+[Install]
+WantedBy=multi-user.target
