@@ -1,5 +1,13 @@
-# TLS and the public name in front of puma; caddy fetches the certificate.
+# caddy in front of puma. With a domain, caddy fetches a TLS certificate:
 archci.example.org {
 	reverse_proxy 127.0.0.1:3000
 	encode zstd gzip
 }
+
+# Until there is a domain, serve plain http by address instead (and set
+# ARCHCI_WEB_FORCE_SSL=0 in /etc/archci-web/env). Comment out the block above
+# and use:
+# :80 {
+# 	reverse_proxy 127.0.0.1:3000
+# 	encode zstd gzip
+# }

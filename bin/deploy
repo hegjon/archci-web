@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# bin/deploy -- update the deployed front end in place: fetch the latest
+# master, install gems, precompile assets, restart the service. Run it on the
+# web host in the checkout (/opt/archci-web), as the archci-web user.
+set -euo pipefail
+cd "$(dirname "$(readlink -f "$0")")/.."
+
+git fetch --quiet origin
+git reset --hard --quiet origin/master
+bundle config set --local deployment true
+bundle config set --local without 'development test'
+bundle install --quiet
+bin/rails assets:precompile
+echo "deployed $(git rev-parse --short HEAD); restarting archci-web"
+sudo systemctl restart archci-web

@@ -36,23 +36,40 @@ each as the web key's.
 
 ## Running it
 
+On an Arch host, with the system Ruby (the app pins no version):
+
 ```
-git clone https://github.com/hegjon/archci-web /opt/archci-web
-cd /opt/archci-web && bundle install --deployment
-ssh-keygen -t ed25519 -N '' -f /etc/archci-web/web_key      # then, on the master:
-archci authorize --web '<the .pub line>'
-install -m 600 deploy/env.example /etc/archci-web/env       # fill in SECRET_KEY_BASE, the password
+pacman -S ruby ruby-bundler base-devel caddy git
+useradd -r -m -d /opt/archci-web archci-web
+git clone https://github.com/hegjon/archci-web /opt/archci-web      # as archci-web
+cd /opt/archci-web
+bundle config set --local deployment true
+bundle config set --local without 'development test'
+bundle install
+
+install -d -m 750 -o root -g archci-web /etc/archci-web
+ssh-keygen -t ed25519 -N '' -f /etc/archci-web/web_key              # then, on the master:
+archci authorize --web "$(cat /etc/archci-web/web_key.pub)"
+install -m 640 -o root -g archci-web deploy/env.example /etc/archci-web/env
+bin/rails secret                                                    # paste into SECRET_KEY_BASE=
+$EDITOR /etc/archci-web/env                                         # the key, the master, the password
+
 bin/rails assets:precompile
 install -m 644 deploy/archci-web.service /etc/systemd/system/
 systemctl enable --now archci-web
 ```
 
-puma listens on 127.0.0.1:3000; `deploy/Caddyfile` puts caddy with TLS in
-front. `master` must resolve to the master's address (`/etc/hosts`), as
-for a worker. In development, `ARCHCI_MASTER=archci@<host>
-ARCHCI_SSH_KEY=~/.ssh/archci_web_key bin/rails server` talks to a real
-master; `bin/rails test` runs against a recorded snapshot
-(`test/fixtures/files`), so the tests need no master.
+puma listens on 127.0.0.1:3000; put caddy in front (`deploy/Caddyfile`).
+With a domain, caddy fetches a TLS certificate; until then, serve plain
+http by address and set `ARCHCI_WEB_FORCE_SSL=0` in the env. `master` must
+resolve to the master's address (`/etc/hosts`), as for a worker.
+
+To update a running deployment: `bin/deploy` (fetch master, install gems,
+precompile, restart).
+
+In development, `ARCHCI_MASTER=archci@<host> ARCHCI_SSH_KEY=~/.ssh/archci_web_key
+bin/rails server` talks to a real master; `bin/rails test` runs against a
+recorded snapshot (`test/fixtures/files`), so the tests need no master.
 
 ## Layout
 
@@ -66,6 +83,7 @@ app/javascript/controllers/refresh_controller.js   the timed Turbo morph
 app/javascript/controllers/follow_controller.js    a running job's live log, from the stream
 app/assets/stylesheets/application.css             Tokyo Night
 deploy/                  the systemd unit, the environment file, a Caddyfile
+bin/deploy               update a running deployment: fetch, bundle, precompile, restart
 test/                    models and pages against the recorded snapshot
 ```
 

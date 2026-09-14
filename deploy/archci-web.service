@@ -13,8 +13,7 @@ WorkingDirectory=/opt/archci-web
 EnvironmentFile=/etc/archci-web/env
 Environment=RAILS_ENV=production
 Environment=PORT=3000
-Environment=BIND=tcp://127.0.0.1:3000
-ExecStart=/opt/archci-web/bin/rails server
+ExecStart=/opt/archci-web/bin/rails server -b 127.0.0.1
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=yes
