@@ -23,7 +23,6 @@
   <% if @log.lines.empty? %>
     <p class="muted"><%= @job.pending? ? "not started yet" : "nothing streamed yet" %></p>
   <% else %>
-    <pre class="log"><% @log.lines.each_with_index do |line, i| %><span class="line<%= ' err' if @log.error_at == i %>" id="L<%= i + 1 %>"><span class="n"><%= i + 1 %></span><%= line %></span>
-<% end %></pre>
+    <pre class="log"><% @log.lines.each_with_index do |line, i| %><span class="line<%= ' err' if @log.error_at == i %>" id="L<%= i + 1 %>"><span class="n"><%= i + 1 %></span><%= line %></span><% end %></pre>
   <% end %>
 </section>
