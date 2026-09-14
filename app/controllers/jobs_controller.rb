@@ -16,7 +16,11 @@ class JobsController < ApplicationController
   end
 
   def show
-    @log = @job.log_lines
+    @repo = @job.repo
+    @generated = @job.generated
+    # a running job's log is filled by the live stream; only a finished job's
+    # archived log is fetched on load (saves a round trip while building)
+    @log = @job.running? ? nil : @job.log_lines
   end
 
   # A running job's journal, live, as server-sent events: "reset" once the
@@ -54,7 +58,10 @@ class JobsController < ApplicationController
 
   private
 
+  # show and stream fetch just the one job (no snapshot); retry and requeue
+  # already loaded the farm via the before_action
   def find_job
-    @job = @farm.job(params[:id]) or render("shared/not_found", status: :not_found)
+    @job = @farm ? @farm.job(params[:id]) : Job.find(params[:id])
+    render("shared/not_found", status: :not_found) unless @job
   end
 end

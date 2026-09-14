@@ -18,7 +18,7 @@
     <header class="top">
       <div class="brand">
         <%= link_to root_path, class: "name" do %>▣ archci<% end %>
-        <span class="repo"><%= @farm&.repo %></span>
+        <span class="repo"><%= @repo %></span>
       </div>
       <nav>
         <%= nav_link "farm", root_path, current_page?(root_path) %>
@@ -28,8 +28,8 @@
         <%= nav_link "sources", jobs_path(q: "src"), params[:q] == "src" %>
       </nav>
       <div class="status">
-        <% if @farm %>
-          <span class="dot online"></span>master seen <%= ago(@farm.generated) %> ago
+        <% if @generated %>
+          <span class="dot online"></span>master seen <%= ago(@generated) %> ago
         <% else %>
           <span class="dot offline"></span>master unreachable
         <% end %>

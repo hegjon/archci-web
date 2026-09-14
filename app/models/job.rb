@@ -14,6 +14,15 @@ class Job
     @data = data
   end
 
+  # one job by id, straight from the master (archci web job ID); nil if gone
+  def self.find(id)
+    new(JSON.parse(Master.run("job", id)))
+  rescue Master::Error
+    nil
+  rescue JSON::ParserError => e
+    raise Farm::Unavailable, e.message
+  end
+
   %w[id state arch pkgbase version worker origin story sources network phase repo commit profile
      created claimed finished log rss peak build load].each do |k|
     define_method(k) { @data[k] }
@@ -35,6 +44,8 @@ class Job
   end
 
   def to_param = id
+  def repo = @data["repo"]
+  def generated = @data["generated"] && Time.iso8601(@data["generated"])
 
   # the job's log from the master: {"lines" => [...], "error_at" => index or nil}
   def log_lines

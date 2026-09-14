@@ -2,7 +2,7 @@
 
 class ApplicationController < ActionController::Base
   allow_browser versions: :modern
-  before_action :load_farm
+  before_action :load_farm, unless: -> { %w[show stream].include?(action_name) && controller_name == "jobs" }
 
   rescue_from Farm::Unavailable do |e|
     @error = e.message
@@ -13,6 +13,8 @@ class ApplicationController < ActionController::Base
 
   def load_farm
     @farm = Farm.current
+    @repo = @farm.repo
+    @generated = @farm.generated
   end
 
   # The queue commands (retry, requeue, enqueue) need the operator's password,

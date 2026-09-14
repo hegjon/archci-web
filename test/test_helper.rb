@@ -16,6 +16,10 @@ module FakeMaster
     calls << args
     case args
     in [ "snapshot" ] then Rails.root.join("test/fixtures/files/snapshot.json").read
+    in [ "job", id ]
+      snap = JSON.parse(Rails.root.join("test/fixtures/files/snapshot.json").read)
+      j = snap["jobs"].find { |x| x["id"] == id } or raise Master::Error, "archci-web: no job #{id}"
+      JSON.generate(j.merge("repo" => snap["repo"], "generated" => Time.now.utc.iso8601))
     in [ "log", id ] if id.include?("grub") then Rails.root.join("test/fixtures/files/log.json").read
     in [ "log", id ] if id.include?("eza") then Rails.root.join("test/fixtures/files/running-log.json").read
     in [ "log", id ] then raise Master::Error, "archci-web: no job #{id}"
