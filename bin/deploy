@@ -10,6 +10,8 @@ git reset --hard --quiet origin/master
 bundle config set --local deployment true
 bundle config set --local without 'development test'
 bundle install --quiet
-bin/rails assets:precompile
+# precompile in the production environment (the dev/test groups are not
+# installed here); it needs a SECRET_KEY_BASE present but not the real one
+RAILS_ENV=production SECRET_KEY_BASE="${SECRET_KEY_BASE:-precompile}" bin/rails assets:precompile
 echo "deployed $(git rev-parse --short HEAD); restarting archci-web"
 sudo systemctl restart archci-web
