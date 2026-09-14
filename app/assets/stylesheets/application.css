@@ -54,11 +54,6 @@ tbody tr:hover td { background: #24283b; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 td.story { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 34rem; color: var(--fg-dim); }
 table.tree th, table.tree td { padding-top: 0.08rem; padding-bottom: 0.08rem; line-height: 1.3; }
-.sym { display: inline-block; width: 1em; text-align: center; font-weight: bold; }
-.sym-done { color: var(--green); }
-.sym-failed { color: var(--red); }
-.sym-running { color: var(--yellow); }
-.sym-pending { color: var(--muted); }
 table.tree tr.pkg td { background: var(--bg-dark); border-top: 1px solid var(--border-hi); }
 table.tree td.branch { padding-left: 1rem; }
 

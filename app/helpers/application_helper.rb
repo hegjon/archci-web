@@ -47,20 +47,6 @@ module ApplicationHelper
     tag.span(state, class: "badge badge-#{state}")
   end
 
-  # a colored glyph for a job's state, for scanning the tree
-  STATUS_GLYPH = { "done" => "\u2714", "failed" => "\u2718", "running" => "\u25CF", "pending" => "\u25CB" }.freeze
-  def status_symbol(state)
-    tag.span(STATUS_GLYPH.fetch(state, "\u00B7"), class: "sym sym-#{state}", title: state)
-  end
-
-  # one glyph for a package row, attention first: a failure, then a running
-  # build, then something waiting, else all done
-  def package_status(jobs)
-    states = jobs.map(&:state)
-    st = %w[failed running pending done].find { |s| states.include?(s) } || "done"
-    status_symbol(st)
-  end
-
   def nav_link(name, path, active)
     link_to name, path, class: active ? "active" : nil
   end

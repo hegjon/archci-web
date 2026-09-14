@@ -11,12 +11,12 @@
     <tbody>
       <% @packages.each do |name, version, jobs| %>
         <tr class="pkg">
-          <td colspan="5"><b><%= name %></b> <span class="muted"><%= version %></span> <%= package_status(jobs) %></td>
+          <td colspan="5"><b><%= name %></b> <span class="muted"><%= version %></span></td>
           <td class="muted"><%= jobs.first.origin %></td>
         </tr>
         <% jobs.each_with_index do |j, i| %>
           <tr class="job">
-            <td class="branch"><span class="muted"><%= i == jobs.size - 1 ? "└─" : "├─" %></span> <%= link_to j.arch, job_path(j) %> <%= status_symbol(j.state) %></td>
+            <td class="branch"><span class="muted"><%= i == jobs.size - 1 ? "└─" : "├─" %></span> <%= link_to j.arch, job_path(j) %></td>
             <td><%= state_badge(j.state) %></td>
             <td><%= j.worker || "-" %></td>
             <td class="num"><%= j.attempt %>/<%= Job::MAX_ATTEMPTS %></td>
