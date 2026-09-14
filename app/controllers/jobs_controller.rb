@@ -36,7 +36,8 @@ class JobsController < ApplicationController
   # show and stream fetch just the one job (no snapshot); retry and requeue
   # already loaded the farm via the before_action
   def find_job
-    @job = @farm ? @farm.job(params[:id]) : Job.find(params[:id])
+    id = params[:id].to_s.tr("/", ",")   # the URL slashes are the real id's commas
+    @job = @farm ? @farm.job(id) : Job.find(id)
     render("shared/not_found", status: :not_found) unless @job
   end
 end

@@ -100,7 +100,7 @@
       <tbody>
         <% @newest_failed.each do |f| %>
           <tr>
-            <td><%= link_to "#{f['pkgbase']} #{f['version']}", job_path(f["id"]) %></td>
+            <td><%= link_to "#{f['pkgbase']} #{f['version']}", job_path(f["id"].tr(",", "/")) %></td>
             <td><%= f["arch"] %></td>
             <td><%= f["worker"] %></td>
             <td class="num"><%= f["attempt"] %></td>

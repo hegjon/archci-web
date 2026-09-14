@@ -40,7 +40,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select ".actions", 0
     ENV["ARCHCI_WEB_PASSWORD"] = "s3cret"
     get job_path(id)
-    assert_select "form[action=?]", retry_job_path(id)
+    assert_select "form[action=?]", retry_job_path(id.tr(",", "/"))
   ensure
     ENV["ARCHCI_WEB_PASSWORD"] = nil
   end
@@ -50,7 +50,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     get job_path(id)
     assert_response :success
     # its source package links to the src job that produced it
-    assert_select "dl.facts dd a[href=?]", job_path("1-1789344688-hegjon-test,eza,0.23.5-2.1,src"), text: /\.src\.tar\.gz/
+    assert_select "dl.facts dd a[href=?]", job_path("1-1789344688-hegjon-test/eza/0.23.5-2.1/src"), text: /\.src\.tar\.gz/
     assert_select "body[data-refresh-interval-value='5000'][data-controller='refresh']"
     assert_includes FakeMaster.calls, [ "log", id ]   # the tail is polled, not streamed
   end
@@ -58,6 +58,15 @@ class PagesTest < ActionDispatch::IntegrationTest
   test "a finished job's page does not refresh" do
     get job_path("5-1788893881-hegjon-test,grub,2:2.14-1,x86_64")
     assert_select "body[data-refresh-interval-value='0'][data-controller='refresh']"
+  end
+
+  test "the job URL renders the id's commas as slashes and routes back" do
+    slug = "5-1788893881-hegjon-test/grub/2:2.14-1/x86_64"
+    job = Farm.current.job("5-1788893881-hegjon-test,grub,2:2.14-1,x86_64")
+    assert_equal "/jobs/#{slug}", job_path(job)   # a Job renders its id with slashes
+    get "/jobs/#{slug}"                            # and the slashed URL routes back
+    assert_response :success
+    assert_select "section.job h2", /grub 2:2\.14-1/
   end
 
   test "an unknown job is not found" do

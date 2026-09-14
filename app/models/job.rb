@@ -43,7 +43,7 @@ class Job
     words.all? { |w| FIELDS.any? { |f| @data[f].to_s.downcase.include?(w.downcase) } }
   end
 
-  def to_param = id
+  def to_param = id.tr(",", "/")   # prettier URL: prio-ts-repo/pkgbase/version/arch
   def repo = @data["repo"]
   def generated = @data["generated"] && Time.iso8601(@data["generated"])
   def sources_job = @data["sources_job"]
