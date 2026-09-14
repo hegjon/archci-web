@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 module ApplicationHelper
+  # the queue commands (retry, requeue, enqueue) are on only when an operator
+  # password is configured; otherwise their buttons are hidden
+  def operator_commands?
+    ENV["ARCHCI_WEB_PASSWORD"].present?
+  end
+
   # "3m", "2h", "5d": how long ago, for tables
   def ago(time)
     return "-" if time.blank?

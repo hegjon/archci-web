@@ -30,8 +30,19 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "dl.facts dd", text: id
     assert_select "pre.log .line.err", 1
     assert_select "pre.log .line", minimum: 100
-    assert_select "form[action=?]", retry_job_path(id)
+    assert_select "form[action=?]", retry_job_path(id), 0   # no operator password: no buttons
     assert_select "body[data-refresh-interval-value='0']"
+  end
+
+  test "the queue buttons show only when an operator password is set" do
+    id = "5-1788893881-hegjon-test,grub,2:2.14-1,x86_64"
+    get job_path(id)
+    assert_select ".actions", 0
+    ENV["ARCHCI_WEB_PASSWORD"] = "s3cret"
+    get job_path(id)
+    assert_select "form[action=?]", retry_job_path(id)
+  ensure
+    ENV["ARCHCI_WEB_PASSWORD"] = nil
   end
 
   test "a running job's page refreshes, follows the stream and keeps its log across morphs" do
@@ -40,8 +51,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "body[data-refresh-interval-value='5000'][data-controller='refresh follow'][data-follow-url-value=?]", stream_job_path(id)
     assert_select "pre#log[data-turbo-permanent]"
-    assert_select "form[action*=requeue]"
-    assert_select "form[action*=retry]", 0
+    assert_select "form[action*=requeue]", 0   # no operator password: no buttons
   end
 
   test "a finished job's page neither follows nor keeps its log" do

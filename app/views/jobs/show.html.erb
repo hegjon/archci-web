@@ -12,11 +12,12 @@
     <% if @job.running? %><dt>phase</dt><dd><%= @job.phase || "-" %> · <%= mem(@job.rss) %> rss, <%= mem(@job.peak) %> peak, <%= mem(@job.build) %> build tree</dd><% end %>
     <dt>log</dt><dd class="muted"><%= @job.running? ? "the journal so far" : @job.log %></dd>
   </dl>
-  <div class="actions">
-    <% if @job.retryable? %><%= button_to "retry (a fresh first attempt)", retry_job_path(@job), class: "btn", form: { data: { turbo_confirm: "Retry #{@job.pkgbase} #{@job.arch} from scratch?" } } %><% end %>
-    <% if @job.requeueable? %><%= button_to "requeue (keep the attempts)", requeue_job_path(@job), class: "btn", form: { data: { turbo_confirm: "Put #{@job.pkgbase} #{@job.arch} back in pending?" } } %><% end %>
-    <% if @job.log_lines.nil? %><% end %>
-  </div>
+  <% if operator_commands? %>
+    <div class="actions">
+      <% if @job.retryable? %><%= button_to "retry (a fresh first attempt)", retry_job_path(@job), class: "btn", form: { data: { turbo_confirm: "Retry #{@job.pkgbase} #{@job.arch} from scratch?" } } %><% end %>
+      <% if @job.requeueable? %><%= button_to "requeue (keep the attempts)", requeue_job_path(@job), class: "btn", form: { data: { turbo_confirm: "Put #{@job.pkgbase} #{@job.arch} back in pending?" } } %><% end %>
+    </div>
+  <% end %>
 </section>
 
 <section>
