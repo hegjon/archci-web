@@ -85,6 +85,7 @@ pre.log .line .n:hover { color: var(--fg); }
 pre.log .line:target .n { color: var(--fg); }
 pre.log .line.err { background: #3b2432; color: var(--red); }
 pre.log .line:target { background: #2d2a3e; }
+pre.log .line.phase:target { background: transparent; }   /* a phase line keeps its background when anchored */
 /* archci-build's slice transitions (online deps install -> offline build):
    just bold and colour the marker lines so the handoff stands out. */
 pre.log .line.phase { font-weight: 700; }
