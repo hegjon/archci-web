@@ -79,7 +79,7 @@ module ApplicationHelper
   # offline slice (no network), or online/loopback for an exempt package.
   # Returns "online", "offline", "loopback", or nil for an ordinary line.
   def log_phase(line)
-    return unless line.start_with?("==> Installing the dependencies", "==> Building in the archci-", "==> Building with ")
+    return unless line.start_with?("==> Installing the pacman dependencies", "==> Building in the archci-", "==> Building with ")
     return "offline" if line.include?("offline")
     return "loopback" if line.include?("loopback")
 

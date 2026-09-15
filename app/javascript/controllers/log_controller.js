@@ -75,7 +75,7 @@ export default class extends Controller {
   // a build's slice-transition marker (mirrors ApplicationHelper#log_phase):
   // the online dependency install, then the offline (or online/loopback) build
   phaseOf(line) {
-    if (line.startsWith("==> Installing the dependencies") ||
+    if (line.startsWith("==> Installing the pacman dependencies") ||
         line.startsWith("==> Building in the archci-") ||
         line.startsWith("==> Building with ")) {
       if (line.includes("offline")) return "offline"
