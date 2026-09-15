@@ -60,8 +60,9 @@ export default class extends Controller {
           span.classList.add("err")
           this.errorLine = n
         }
-        const num = document.createElement("span")
+        const num = document.createElement("a")
         num.className = "n"
+        num.href = "#L" + n
         num.textContent = n
         span.append(num, document.createTextNode(line))
         frag.append(span)

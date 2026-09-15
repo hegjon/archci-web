@@ -34,6 +34,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "dl.facts dd", text: /1m 43s.*online 20s.*offline 1m 18s/
     assert_select "pre.log .line.phase-online", 1   # the online->offline slice markers are highlighted
     assert_select "pre.log .line.phase-offline", 1
+    assert_select "pre.log a.n[href=?]", "#L1"   # line numbers are clickable anchors
     assert_select "form[action=?]", retry_job_path(id), 0   # no operator password: no buttons
     assert_select "body[data-refresh-interval-value='0']"
   end

@@ -80,7 +80,9 @@ dl.facts dd { margin: 0; }
 
 pre.log { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 4px; padding: 0.6rem 0; margin: 0; overflow-x: auto; font-size: 12px; line-height: 1.45; }
 pre.log .line { display: block; padding: 0 0.8rem; white-space: pre; }
-pre.log .line .n { display: inline-block; width: 3.5rem; color: var(--muted); user-select: none; text-align: right; padding-right: 0.8rem; }
+pre.log .line .n { display: inline-block; width: 3.5rem; color: var(--muted); user-select: none; text-align: right; padding-right: 0.8rem; text-decoration: none; }
+pre.log .line .n:hover { color: var(--fg); }
+pre.log .line:target .n { color: var(--fg); }
 pre.log .line.err { background: #3b2432; color: var(--red); }
 pre.log .line:target { background: #2d2a3e; }
 /* archci-build's slice transitions (online deps install -> offline build):
@@ -89,6 +91,11 @@ pre.log .line.phase { font-weight: 700; }
 pre.log .line.phase-online { color: var(--cyan); }
 pre.log .line.phase-offline { color: var(--orange); }
 pre.log .line.phase-loopback { color: var(--yellow); }
+/* highlight the line number of a phase line so the slice boundaries stand out */
+pre.log .line.phase .n { color: inherit; font-weight: 700; }
+pre.log .line.phase-online .n { background: rgba(122, 220, 255, 0.16); }
+pre.log .line.phase-offline .n { background: rgba(255, 158, 100, 0.18); }
+pre.log .line.phase-loopback .n { background: rgba(224, 175, 104, 0.16); }
 
 footer { padding: 0.7rem 1.5rem; border-top: 1px solid var(--border); color: var(--muted); background: var(--bg-dark); }
 footer a { color: var(--fg-dim); }
