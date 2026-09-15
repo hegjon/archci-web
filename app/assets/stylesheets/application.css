@@ -83,6 +83,8 @@ pre.log .line { display: block; padding: 0 0.8rem; white-space: pre; }
 pre.log .line .n { display: inline-block; width: 3.5rem; color: var(--muted); user-select: none; text-align: right; padding-right: 0.8rem; text-decoration: none; }
 pre.log .line .n:hover { color: var(--fg); }
 pre.log .line:target .n { color: var(--fg); }
+pre.log .line.pri-3, pre.log .line.pri-2, pre.log .line.pri-1, pre.log .line.pri-0 { color: var(--yellow); }   /* a unit's stderr (journal priority err and up) */
+pre.log .line.pri-4 { color: var(--yellow); }
 pre.log .line.err { background: #3b2432; color: var(--red); }
 pre.log .line:target { background: #2d2a3e; }
 pre.log .line.phase:target { background: transparent; }   /* a phase line keeps its background when anchored */

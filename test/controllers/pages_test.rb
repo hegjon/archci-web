@@ -24,22 +24,36 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "tr.job .badge-done", 0
   end
 
-  test "a job page shows its story, facts and log with the first error" do
+  test "a job page shows its story and facts, and wires the log window to the entries" do
     id = "5-1788893881-hegjon-test,grub,2:2.14-1,x86_64"
     get job_path(id)
     assert_response :success
     assert_select "section.job h2", /grub 2:2\.14-1/
     assert_select "dl.facts dd", text: id
-    assert_select "pre.log .line.err", 1
-    assert_select "pre.log .line", minimum: 100
     # build time (from the log's start/finish) split into online + offline phases
     assert_select "dl.facts dd", text: /1m 43s.*online 20s.*offline 1m 18s/
     assert_select "dl.facts dd .net-offline", text: /offline 1m 18s/   # split coloured like the log
-    assert_select "pre.log .line.phase-online", 1   # the online->offline slice markers are highlighted
-    assert_select "pre.log .line.phase-offline", 1
-    assert_select "pre.log a.n[href=?]", "#L1"   # line numbers are clickable anchors
+    # the log window is built in the browser from the entries the log action returns: fetched once for a finished job
+    assert_select "section[data-controller='log'][data-log-url-value=?][data-log-interval-value='0'][data-log-state-value='failed']", log_job_path(id.tr(",", "/"))
+    assert_select "pre.log[data-log-target='pre'][hidden]"
+    assert_select "pre.log .line", 0
+    assert_not_includes FakeMaster.calls.map(&:first), "entries"   # show never fetches the log
     assert_select "form[action=?]", retry_job_path(id), 0   # no operator password: no buttons
     assert_select "body[data-refresh-interval-value='0']"
+  end
+
+  test "the log endpoint returns a finished job's journal entries with their cursor, time, phase and first error" do
+    id = "5-1788893881-hegjon-test,grub,2:2.14-1,x86_64"
+    get log_job_path(id.tr(",", "/"))
+    assert_response :success
+    body = JSON.parse(@response.body)
+    assert_equal "failed", body["state"]
+    assert_operator body["entries"].size, :>, 100
+    assert_nil body["cursor"]
+    assert_match(/error|ERROR/, body["entries"][body["error_at"]]["MESSAGE"])
+    body["entries"].each { |e| assert e["__CURSOR"].start_with?("s="); assert_match(/\A\d{16}\z/, e["__REALTIME_TIMESTAMP"]) }
+    assert_equal %w[online offline], body["entries"].filter_map { |e| e["phase"] }   # the online->offline slice markers
+    assert_includes FakeMaster.calls, [ "entries", id ]
   end
 
   test "the queue buttons show only when an operator password is set" do
@@ -61,30 +75,30 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "dl.facts dd a[href=?]", job_path("1-1789344688-hegjon-test/eza/0.23.5-2.1/src"), text: /\.src\.tar\.gz/
     assert_select "body[data-refresh-interval-value='5000'][data-controller='refresh']"
     # the log is loaded and appended client-side, not rendered (or re-sent) here
-    assert_select "section[data-controller='log'][data-log-url-value=?]", log_job_path(id.tr(",", "/"))
+    assert_select "section[data-controller='log'][data-log-url-value=?][data-log-interval-value='5000'][data-log-state-value='running']", log_job_path(id.tr(",", "/"))
     assert_select "section[data-controller='log'][data-turbo-permanent]"
-    assert_not_includes FakeMaster.calls.map(&:first), "log"   # show never fetches the log
+    assert_not_includes FakeMaster.calls.map(&:first), "entries"   # show never fetches the log
     # build time so far (claimed -> now), refreshed by the page's morph
     assert_select "dl.facts dt", text: "build time"
     assert_select "dl.facts dd", /\A\d+(h \d+m|m \d+s|s)\z/
   end
 
-  test "the log endpoint returns a running job's lines and a cursor to resume from" do
+  test "the log endpoint returns a running job's entries and a cursor to resume from" do
     id = "5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64"
     get log_job_path(id.tr(",", "/"))
     assert_response :success
     body = JSON.parse(@response.body)
     assert_equal "running", body["state"]
-    assert_operator body["lines"].size, :>, 0
-    assert body["cursor"].present?
-    assert_includes FakeMaster.calls, [ "log", id ]   # first poll: no cursor, the whole journal so far
+    assert_operator body["entries"].size, :>, 0
+    assert_equal body["entries"].last["__CURSOR"], body["cursor"]   # the last entry's
+    assert_includes FakeMaster.calls, [ "entries", id ]   # first poll: no cursor, the whole journal so far
   end
 
   test "the log endpoint passes the cursor through to the master" do
     id = "5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64"
     get log_job_path(id.tr(",", "/")), params: { after: "s=abc;i=100" }
     assert_response :success
-    assert_includes FakeMaster.calls, [ "log", id, "s=abc;i=100" ]
+    assert_includes FakeMaster.calls, [ "entries", id, "s=abc;i=100" ]
   end
 
   test "the log endpoint is 404 JSON for an unknown job" do

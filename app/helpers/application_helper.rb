@@ -74,18 +74,6 @@ module ApplicationHelper
     m.positive? ? "#{m}m #{sec}s" : "#{sec}s"
   end
 
-  # a build's slice-transition marker line and which mode it announces:
-  # archci-build installs dependencies online, then builds -- normally in the
-  # offline slice (no network), or online/loopback for an exempt package.
-  # Returns "online", "offline", "loopback", or nil for an ordinary line.
-  def log_phase(line)
-    return unless line.start_with?("==> Installing the pacman dependencies", "==> Building in the archci-", "==> Building with ")
-    return "offline" if line.include?("offline")
-    return "loopback" if line.include?("loopback")
-
-    "online"
-  end
-
   # megabytes as archci top shows them
   def mem(mb)
     return "-" if mb.blank?

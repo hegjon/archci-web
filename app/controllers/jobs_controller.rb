@@ -16,18 +16,17 @@ class JobsController < ApplicationController
   def show
     @repo = @job.repo
     @generated = @job.generated
-    # A finished job's log is rendered here in full. A running job's is loaded
-    # and then appended by the log controller (the log action below), which
-    # asks the master only for the journal lines it has not seen yet, so the
-    # whole log is not re-sent on every poll.
-    @log = @job.log_lines unless @job.running?
+    # The log is not rendered here: the browser builds the log window from
+    # the journal entries the log action below returns, and, for a running
+    # job, keeps asking it for the entries it has not seen yet.
   end
 
-  # the running job's log as JSON, for the log Stimulus controller: the lines
-  # that follow ?after=<cursor> (the whole journal so far when no cursor), and
-  # the cursor to resume from next time. A read: no operator password needed.
+  # the job's log as journal entries (JSON), for the log Stimulus controller:
+  # the whole log, or the entries that follow ?after=<cursor> for a running
+  # job, and the cursor to resume from next time. A read: no operator
+  # password needed.
   def log
-    render json: @job.log_lines(params[:after].presence).to_h
+    render json: @job.log_entries(params[:after].presence).to_h
   rescue Farm::Unavailable => e
     render json: { error: e.message }, status: :bad_gateway
   end

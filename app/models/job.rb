@@ -48,17 +48,19 @@ class Job
   def generated = @data["generated"] && Time.iso8601(@data["generated"])
   def sources_job = @data["sources_job"]
 
-  # the job's log from the master: {lines, error_at, state, cursor}. With a
-  # cursor (after), only the journal lines that follow it, so a poll fetches
-  # just the new ones; without, the whole log so far.
-  def log_lines(after = nil)
-    Log.new(JSON.parse(Master.run("log", *[ id, after ].compact)))
+  # the job's log from the master as journal entries (archci web entries):
+  # {entries: [{__CURSOR, __REALTIME_TIMESTAMP, MESSAGE, phase?}], error_at,
+  # state, cursor}, what the browser builds the log window from. With a
+  # cursor (after), only the entries that follow it, so a poll of a running
+  # job fetches just the new ones; without, the whole log so far.
+  def log_entries(after = nil)
+    Log.new(JSON.parse(Master.run("entries", *[ id, after ].compact)))
   rescue Master::Error, JSON::ParserError => e
     raise Farm::Unavailable, e.message
   end
 
   Log = Struct.new(:data) do
-    def lines = data["lines"]
+    def entries = data["entries"]
     def error_at = data["error_at"]
     def state = data["state"]
     def cursor = data["cursor"]

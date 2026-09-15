@@ -7,8 +7,9 @@ its own that reads the master over ssh.
 
 It is a Rails application without a database. The master's snapshot is
 its only state, fetched as the `web` key (`archci authorize --web` on the
-master lets a key run `snapshot`, `log ID`, `retry`, `requeue` and
-`enqueue`, nothing else) and kept for a few seconds; pages refresh
+master lets a key run `snapshot`, `job ID`, `log ID`, `entries ID`,
+`retry`, `requeue` and `enqueue`, nothing else) and kept for a few
+seconds; pages refresh
 themselves every five seconds by a Turbo morph, so the filter box and the
 scroll position stay put. The look is a terminal in
 [Tokyo Night](https://github.com/enkia/tokyo-night-vscode-theme).
@@ -27,10 +28,13 @@ scroll position stay put. The look is a terminal in
   `failed` and `sources` in the header are that filter
 - `/jobs/<id>` one job: its story, the source package and network it had,
   its stats while it runs, and its log opened at the first error; retry
-  and requeue buttons for the operator. Every log is the job's entries in
-  the workers' journal on the master, nothing is read from files; a
-  running job's is what has streamed so far, and the page refetches the
-  new lines every few seconds until the job finishes
+  and requeue buttons for the operator. The log window is built in the
+  browser from the job's journal entries (`archci web entries` on the
+  master, proxied at `/jobs/<id>/log`): each line with the time it was
+  written as the line number's tooltip and its journal cursor on the line,
+  nothing read from files; a running job's is what has streamed so far,
+  and the page fetches only the entries after the last cursor every few
+  seconds until the job finishes
 
 The queue commands ask for the operator's password (`ARCHCI_WEB_PASSWORD`,
 HTTP basic auth); without one configured they are off. The master logs
@@ -76,9 +80,9 @@ recorded snapshot (`test/fixtures/files`), so the tests need no master.
 ## Layout
 
 ```
-app/models/master.rb     the master over ssh: Master.run("snapshot"), .run("log", id), ...
+app/models/master.rb     the master over ssh: Master.run("snapshot"), .run("entries", id), ...
 app/models/farm.rb       the snapshot: counts, hosts, jobs, the tree per package, filtering
-app/models/job.rb        one job: fields, story, its log from the master
+app/models/job.rb        one job: fields, story, its log as journal entries from the master
 app/controllers/         farm (the front page), jobs (tree, one job, retry, requeue), enqueue
 app/views/               the pages; layouts/application.html.erb is the frame (header, footer)
 app/javascript/controllers/refresh_controller.js   the timed Turbo morph (re-polls a running job's log)

@@ -3,7 +3,8 @@ require_relative "../config/environment"
 require "rails/test_help"
 
 # The master, faked: the fixtures are a real snapshot and two logs taken
-# from the test instance with the web key. Commands are recorded.
+# from the test instance with the web key (as journal entries, archci web
+# entries). Commands are recorded.
 module FakeMaster
   def self.calls = @calls ||= []
 
@@ -37,9 +38,9 @@ module FakeMaster
         extra["sources_job"] = src["id"] if src
       end
       JSON.generate(j.merge(extra))
-    in [ "log", id, * ] if id.include?("grub") then Rails.root.join("test/fixtures/files/log.json").read
-    in [ "log", id, * ] if id.include?("eza") then Rails.root.join("test/fixtures/files/running-log.json").read
-    in [ "log", id, * ] then raise Master::Error, "archci-web: no job #{id}"
+    in [ "entries", id, * ] if id.include?("grub") then Rails.root.join("test/fixtures/files/entries.json").read
+    in [ "entries", id, * ] if id.include?("eza") then Rails.root.join("test/fixtures/files/running-entries.json").read
+    in [ "entries", id, * ] then raise Master::Error, "archci-web: no job #{id}"
     in [ "retry" | "requeue", id ] then "archci-job: #{id} #{args.first}\n"
     in [ "enqueue", pkg, prio, arch ] then "archci-job: enqueued 0-1-x,#{pkg},1-1,#{arch}\n"
     end

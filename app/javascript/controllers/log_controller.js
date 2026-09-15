@@ -1,14 +1,16 @@
-// A running job's log, without re-sending the whole thing each poll. The page
-// first renders nothing; this loads the journal so far, then every interval
-// asks the master (the log action) only for the lines that follow the cursor
-// it last saw and appends them. journalctl -f cannot follow a journald-remote
-// journal, so the master polls the journal; the cursor makes each poll a delta.
+// The log window, built from the job's journal entries (the log action:
+// archci web entries on the master): each line with the time it was written
+// and its journal cursor. A finished job's log is fetched once; a running
+// job's is fetched and then, every interval, only the entries that follow
+// the cursor last seen are asked for and appended, so the whole log is not
+// re-sent on every poll (journalctl -f cannot follow a journald-remote
+// journal, so the master polls it; the cursor makes each poll a delta).
 import { Controller } from "@hotwired/stimulus"
 import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
   static targets = ["pre", "status", "empty"]
-  static values = { url: String, after: String, count: Number, interval: Number }
+  static values = { url: String, after: String, count: Number, interval: Number, state: String }
 
   connect() {
     this.errorLine = null   // 1-based line of the first error, once one is seen
@@ -29,15 +31,15 @@ export default class extends Controller {
       const url = new URL(this.urlValue, window.location.origin)
       if (this.afterValue) url.searchParams.set("after", this.afterValue)
       const res = await fetch(url, { headers: { Accept: "application/json" } })
-      if (!res.ok) return
+      if (!res.ok) { this.statusTarget.textContent = "unavailable"; return }
       const data = await res.json()
-      if (data.state && data.state !== "running") {
-        // the job finished: stop, and let the page render the archived log
+      if (this.stateValue === "running" && data.state && data.state !== "running") {
+        // the job finished while we watched: the page's facts are stale, reload
         clearInterval(this.timer)
         Turbo.visit(window.location.href, { action: "replace" })
         return
       }
-      this.append(data.lines || [], data.error_at)
+      this.append(data.entries || [], data.error_at)
       if (data.cursor) this.afterValue = data.cursor
     } catch {
       // transient (the master briefly unreachable); the next tick retries
@@ -46,16 +48,21 @@ export default class extends Controller {
     }
   }
 
-  append(lines, errorAt) {
-    if (lines.length) {
+  // one line per entry: its number (an anchor, with the time it was written
+  // as its title and the journal cursor on the line), its journal priority
+  // (a unit's stderr is 3, its stdout 6), the slice marker's phase and the
+  // first error as the master flagged them
+  append(entries, errorAt) {
+    if (entries.length) {
       const frag = document.createDocumentFragment()
-      lines.forEach((line, i) => {
+      entries.forEach((e, i) => {
         const n = this.countValue + i + 1
         const span = document.createElement("span")
         span.className = "line"
         span.id = "L" + n
-        const phase = this.phaseOf(line)
-        if (phase) span.classList.add("phase", "phase-" + phase)
+        if (e.__CURSOR) span.dataset.cursor = e.__CURSOR
+        if (e.PRIORITY != null) span.classList.add("pri-" + e.PRIORITY)   // stderr lines (3) stand out from stdout (6)
+        if (e.phase) span.classList.add("phase", "phase-" + e.phase)
         if (errorAt != null && this.errorLine == null && i === errorAt) {
           span.classList.add("err")
           this.errorLine = n
@@ -64,33 +71,43 @@ export default class extends Controller {
         num.className = "n"
         num.href = "#L" + n
         num.textContent = n
-        span.append(num, document.createTextNode(line))
+        if (e.__REALTIME_TIMESTAMP) num.title = this.when(e.__REALTIME_TIMESTAMP)
+        span.append(num, document.createTextNode(e.MESSAGE ?? ""))
         frag.append(span)
       })
       this.preTarget.append(frag)
-      this.countValue += lines.length
+      const first = this.countValue === 0
+      this.countValue += entries.length
+      this.render()
+      if (first) this.jump()
+    } else {
+      this.render()
     }
-    this.render()
   }
 
-  // a build's slice-transition marker (mirrors ApplicationHelper#log_phase):
-  // the online dependency install, then the offline (or online/loopback) build
-  phaseOf(line) {
-    if (line.startsWith("==> Installing the pacman dependencies") ||
-        line.startsWith("==> Building in the archci-") ||
-        line.startsWith("==> Building with ")) {
-      if (line.includes("offline")) return "offline"
-      if (line.includes("loopback")) return "loopback"
-      return "online"
-    }
-    return null
+  // the journal's microseconds since the epoch, as an ISO time to the millisecond
+  when(us) {
+    const ms = Number(us.slice(0, -3))
+    return Number.isFinite(ms) ? new Date(ms).toISOString() : ""
+  }
+
+  // the line the URL's #L<n> names, once the log is there (the browser could
+  // not scroll to it before), else the first error
+  jump() {
+    const m = window.location.hash.match(/^#L(\d+)$/)
+    const target = m ? document.getElementById("L" + m[1]) : (this.errorLine && document.getElementById("L" + this.errorLine))
+    if (target) target.scrollIntoView({ block: "center" })
   }
 
   render() {
-    if (this.countValue === 0) return   // still nothing streamed
+    if (this.countValue === 0) {
+      this.emptyTarget.hidden = false
+      this.statusTarget.textContent = ""
+      return
+    }
     this.emptyTarget.hidden = true
     this.preTarget.hidden = false
-    let html = `${this.countValue} lines so far`
+    let html = `${this.countValue} lines${this.stateValue === "running" ? " so far" : ""}`
     if (this.errorLine) html += ` · <a href="#L${this.errorLine}">first error at ${this.errorLine}</a>`
     this.statusTarget.innerHTML = html
   }

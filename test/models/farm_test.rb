@@ -40,11 +40,11 @@ class FarmTest < ActiveSupport::TestCase
     assert_not job.matches?(%w[grub aarch64])
   end
 
-  test "a job's log comes from the master with its first error" do
-    log = Farm.current.job("5-1788893881-hegjon-test,grub,2:2.14-1,x86_64").log_lines
-    assert_operator log.lines.size, :>, 100
+  test "a job's log comes from the master as journal entries with its first error" do
+    log = Farm.current.job("5-1788893881-hegjon-test,grub,2:2.14-1,x86_64").log_entries
+    assert_operator log.entries.size, :>, 100
     assert_kind_of Integer, log.error_at
-    assert_match(/error|ERROR/, log.lines[log.error_at])
+    assert_match(/error|ERROR/, log.entries[log.error_at]["MESSAGE"])
   end
 
   test "an unreachable master is Farm::Unavailable" do
