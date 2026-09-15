@@ -83,6 +83,13 @@ pre.log .line { display: block; padding: 0 0.8rem; white-space: pre; }
 pre.log .line .n { display: inline-block; width: 3.5rem; color: var(--muted); user-select: none; text-align: right; padding-right: 0.8rem; }
 pre.log .line.err { background: #3b2432; color: var(--red); }
 pre.log .line:target { background: #2d2a3e; }
+/* archci-build's slice transitions: online deps install -> offline build.
+   Make the handoff into offline (no network) obvious in the log. */
+pre.log .line.phase { padding-top: 0.3rem; padding-bottom: 0.3rem; margin: 0.35rem 0; font-weight: 600; border-top: 1px solid var(--border-hi); border-bottom: 1px solid var(--border-hi); }
+pre.log .line.phase .n { color: inherit; opacity: 0.55; }
+pre.log .line.phase-online { color: var(--cyan); background: rgba(122, 220, 255, 0.07); }
+pre.log .line.phase-offline { color: var(--orange); background: rgba(255, 158, 100, 0.11); }
+pre.log .line.phase-loopback { color: var(--yellow); background: rgba(224, 175, 104, 0.08); }
 
 footer { padding: 0.7rem 1.5rem; border-top: 1px solid var(--border); color: var(--muted); background: var(--bg-dark); }
 footer a { color: var(--fg-dim); }

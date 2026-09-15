@@ -54,6 +54,8 @@ export default class extends Controller {
         const span = document.createElement("span")
         span.className = "line"
         span.id = "L" + n
+        const phase = this.phaseOf(line)
+        if (phase) span.classList.add("phase", "phase-" + phase)
         if (errorAt != null && this.errorLine == null && i === errorAt) {
           span.classList.add("err")
           this.errorLine = n
@@ -68,6 +70,19 @@ export default class extends Controller {
       this.countValue += lines.length
     }
     this.render()
+  }
+
+  // a build's slice-transition marker (mirrors ApplicationHelper#log_phase):
+  // the online dependency install, then the offline (or online/loopback) build
+  phaseOf(line) {
+    if (line.startsWith("==> Installing the dependencies") ||
+        line.startsWith("==> Building in the archci-") ||
+        line.startsWith("==> Building with ")) {
+      if (line.includes("offline")) return "offline"
+      if (line.includes("loopback")) return "loopback"
+      return "online"
+    }
+    return null
   }
 
   render() {

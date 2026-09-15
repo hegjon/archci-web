@@ -41,7 +41,7 @@
     <% if lines.empty? %>
       <p class="muted"><%= @job.pending? ? "not started yet" : "no log" %></p>
     <% else %>
-      <pre class="log" id="log"><% lines.each_with_index do |line, i| %><span class="line<%= ' err' if @log&.error_at == i %>" id="L<%= i + 1 %>"><span class="n"><%= i + 1 %></span><%= line %></span><% end %></pre>
+      <pre class="log" id="log"><% lines.each_with_index do |line, i| %><span class="line<%= ' err' if @log&.error_at == i %><%= " phase phase-#{ph}" if (ph = log_phase(line)) %>" id="L<%= i + 1 %>"><span class="n"><%= i + 1 %></span><%= line %></span><% end %></pre>
     <% end %>
   </section>
 <% end %>
