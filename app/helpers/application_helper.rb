@@ -49,6 +49,20 @@ module ApplicationHelper
     duration_hms((finish - Time.iso8601(job.started)).to_i)
   end
 
+  # a package build's online (dependency install, with the network) and offline
+  # (the build itself) portions, from the phase timestamps the master reports;
+  # nil when they are missing (a src job, a running build, or an older log).
+  # The build phase is labelled by its slice (offline, or online/loopback when
+  # the package is network-exempt).
+  def build_split(job)
+    return if job.online_at.blank? || job.build_at.blank? || job.stopped.blank?
+
+    online = (Time.iso8601(job.build_at) - Time.iso8601(job.online_at)).to_i
+    build = (Time.iso8601(job.stopped) - Time.iso8601(job.build_at)).to_i
+    { online: duration_hms(online), build: duration_hms(build),
+      slice: job.network == "full" ? "online" : (job.network.presence || "offline") }
+  end
+
   # a build's length: "1h 12m", "4m 30s" or "45s"
   def duration_hms(seconds)
     return "-" if seconds.nil?

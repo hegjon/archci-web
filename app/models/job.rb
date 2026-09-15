@@ -24,7 +24,7 @@ class Job
   end
 
   %w[id state arch pkgbase version worker origin story sources network phase repo commit profile
-     created claimed finished started stopped log rss peak build load].each do |k|
+     created claimed finished started stopped online_at build_at log rss peak build load].each do |k|
     define_method(k) { @data[k] }
   end
 

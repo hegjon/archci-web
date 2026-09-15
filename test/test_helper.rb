@@ -28,6 +28,10 @@ module FakeMaster
         when "done", "failed" then [ "2026-09-10T15:17:25Z", "2026-09-10T15:19:08Z" ]
         else [ nil, nil ]
         end
+      if %w[done failed].include?(j["state"])
+        extra["online_at"] = "2026-09-10T15:17:30Z"   # deps install started
+        extra["build_at"] = "2026-09-10T15:17:50Z"    # offline build started
+      end
       if j["sources"] && j["arch"] != "src"
         src = snap["jobs"].find { |x| x["arch"] == "src" && x["pkgbase"] == j["pkgbase"] && x["version"] == j["version"] }
         extra["sources_job"] = src["id"] if src

@@ -30,7 +30,8 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "dl.facts dd", text: id
     assert_select "pre.log .line.err", 1
     assert_select "pre.log .line", minimum: 100
-    assert_select "dl.facts dd", text: "1m 43s"   # build time, from the log's start and finish lines
+    # build time (from the log's start/finish) split into online + offline phases
+    assert_select "dl.facts dd", text: /1m 43s.*online 20s.*offline 1m 18s/
     assert_select "pre.log .line.phase-online", 1   # the online->offline slice markers are highlighted
     assert_select "pre.log .line.phase-offline", 1
     assert_select "form[action=?]", retry_job_path(id), 0   # no operator password: no buttons

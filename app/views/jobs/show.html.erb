@@ -9,7 +9,7 @@
     <% if @job.sources %><dt>sources</dt><dd><%= @job.sources_job ? link_to(@job.sources, job_path(@job.sources_job.tr(",", "/"))) : @job.sources %></dd><% end %>
     <% if @job.network %><dt>network</dt><dd><%= @job.network %></dd><% end %>
     <% if @job.running? %><dt>phase</dt><dd><%= @job.phase || "-" %> · <%= mem(@job.rss) %> rss, <%= mem(@job.peak) %> peak, <%= mem(@job.build) %> build tree</dd><% end %>
-    <% if (bt = build_time(@job)) %><dt>build time</dt><dd><%= bt %></dd><% end %>
+    <% if (bt = build_time(@job)) %><dt>build time</dt><dd><%= bt %><% if (sp = build_split(@job)) %> <span class="muted">· online <%= sp[:online] %> · <%= sp[:slice] %> <%= sp[:build] %></span><% end %></dd><% end %>
     <dt>log</dt><dd class="muted"><%= @job.running? ? "the journal so far" : @job.log %></dd>
   </dl>
   <% if operator_commands? %>
