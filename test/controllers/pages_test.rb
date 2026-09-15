@@ -57,6 +57,9 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "section[data-controller='log'][data-log-url-value=?]", log_job_path(id.tr(",", "/"))
     assert_select "section[data-controller='log'][data-turbo-permanent]"
     assert_not_includes FakeMaster.calls.map(&:first), "log"   # show never fetches the log
+    # build time so far (claimed -> now), refreshed by the page's morph
+    assert_select "dl.facts dt", text: "build time"
+    assert_select "dl.facts dd", /\A\d+(h \d+m|m \d+s|s)\z/
   end
 
   test "the log endpoint returns a running job's lines and a cursor to resume from" do

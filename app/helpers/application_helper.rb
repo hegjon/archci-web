@@ -49,6 +49,13 @@ module ApplicationHelper
     duration_hms((Time.iso8601(finish) - Time.iso8601(start)).to_i)
   end
 
+  # how long a running build has gone so far, from when the worker claimed it
+  def build_time_running(job)
+    return if job.claimed.blank?
+
+    duration_hms((Time.now - Time.iso8601(job.claimed)).to_i)
+  end
+
   # a build's length: "1h 12m", "4m 30s" or "45s"
   def duration_hms(seconds)
     return "-" if seconds.nil?
