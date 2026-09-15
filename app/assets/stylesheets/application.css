@@ -91,6 +91,10 @@ pre.log .line.phase { font-weight: 700; }
 pre.log .line.phase-online { color: var(--cyan); }
 pre.log .line.phase-offline { color: var(--orange); }
 pre.log .line.phase-loopback { color: var(--yellow); }
+/* the build-time split reuses the log phase colours */
+.net-online { color: var(--cyan); }
+.net-offline { color: var(--orange); }
+.net-loopback { color: var(--yellow); }
 /* highlight the line number of a phase line (colour + bold, no background) */
 pre.log .line.phase .n { color: inherit; font-weight: 700; }
 

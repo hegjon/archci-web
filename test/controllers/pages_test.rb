@@ -32,6 +32,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "pre.log .line", minimum: 100
     # build time (from the log's start/finish) split into online + offline phases
     assert_select "dl.facts dd", text: /1m 43s.*online 20s.*offline 1m 18s/
+    assert_select "dl.facts dd .net-offline", text: /offline 1m 18s/   # split coloured like the log
     assert_select "pre.log .line.phase-online", 1   # the online->offline slice markers are highlighted
     assert_select "pre.log .line.phase-offline", 1
     assert_select "pre.log a.n[href=?]", "#L1"   # line numbers are clickable anchors
