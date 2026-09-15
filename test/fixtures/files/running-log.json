@@ -1,1 +1,1 @@
-{"id":"5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64","state":"running","lines":[],"error_at":null}
+{"id":"5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64","state":"running","lines":["==> Making package: eza 0.23.5-2.1","==> Retrieving sources...","  -> found eza-0.23.5.tar.gz","==> Starting build()..."],"error_at":null,"cursor":"s=abc;i=100;b=xyz;m=1;t=2;x=3"}

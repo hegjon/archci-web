@@ -4,7 +4,7 @@
 # its story and log (show), and the operator's commands on it.
 class JobsController < ApplicationController
   before_action :require_operator, only: %i[retry requeue]
-  before_action :find_job, only: %i[show retry requeue]
+  before_action :find_job, only: %i[show log retry requeue]
 
   def index
     @words = params[:q].to_s.split
@@ -16,11 +16,20 @@ class JobsController < ApplicationController
   def show
     @repo = @job.repo
     @generated = @job.generated
-    # A running job's log is the tail of what its journal has streamed to the
-    # master so far; the page refetches it every few seconds (the refresh
-    # controller). journalctl -f cannot follow a journald-remote journal, so
-    # this polls the tail rather than streaming.
-    @log = @job.log_lines
+    # A finished job's log is rendered here in full. A running job's is loaded
+    # and then appended by the log controller (the log action below), which
+    # asks the master only for the journal lines it has not seen yet, so the
+    # whole log is not re-sent on every poll.
+    @log = @job.log_lines unless @job.running?
+  end
+
+  # the running job's log as JSON, for the log Stimulus controller: the lines
+  # that follow ?after=<cursor> (the whole journal so far when no cursor), and
+  # the cursor to resume from next time. A read: no operator password needed.
+  def log
+    render json: @job.log_lines(params[:after].presence).to_h
+  rescue Farm::Unavailable => e
+    render json: { error: e.message }, status: :bad_gateway
   end
 
   def retry
@@ -38,6 +47,12 @@ class JobsController < ApplicationController
   def find_job
     id = params[:id].to_s.tr("/", ",")   # the URL slashes are the real id's commas
     @job = @farm ? @farm.job(id) : Job.find(id)
-    render("shared/not_found", status: :not_found) unless @job
+    return if @job
+
+    if action_name == "log"
+      render json: { error: "no job #{id}" }, status: :not_found
+    else
+      render "shared/not_found", status: :not_found
+    end
   end
 end

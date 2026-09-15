@@ -25,9 +25,9 @@ module FakeMaster
         extra["sources_job"] = src["id"] if src
       end
       JSON.generate(j.merge(extra))
-    in [ "log", id ] if id.include?("grub") then Rails.root.join("test/fixtures/files/log.json").read
-    in [ "log", id ] if id.include?("eza") then Rails.root.join("test/fixtures/files/running-log.json").read
-    in [ "log", id ] then raise Master::Error, "archci-web: no job #{id}"
+    in [ "log", id, * ] if id.include?("grub") then Rails.root.join("test/fixtures/files/log.json").read
+    in [ "log", id, * ] if id.include?("eza") then Rails.root.join("test/fixtures/files/running-log.json").read
+    in [ "log", id, * ] then raise Master::Error, "archci-web: no job #{id}"
     in [ "retry" | "requeue", id ] then "archci-job: #{id} #{args.first}\n"
     in [ "enqueue", pkg, prio, arch ] then "archci-job: enqueued 0-1-x,#{pkg},1-1,#{arch}\n"
     end

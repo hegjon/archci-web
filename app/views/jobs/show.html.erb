@@ -19,12 +19,28 @@
   <% end %>
 </section>
 
-<section>
-  <% lines = @log&.lines || [] %>
-  <h2>log <span class="muted"><%= @job.running? ? "#{lines.size} lines so far" : "#{lines.size} lines" %><% if @log&.error_at %> · <a href="#L<%= @log.error_at + 1 %>">first error at <%= @log.error_at + 1 %></a><% end %></span></h2>
-  <% if lines.empty? %>
-    <p class="muted"><%= @job.pending? ? "not started yet" : (@job.running? ? "nothing streamed yet" : "no log") %></p>
-  <% else %>
-    <pre class="log" id="log"><% lines.each_with_index do |line, i| %><span class="line<%= ' err' if @log&.error_at == i %>" id="L<%= i + 1 %>"><span class="n"><%= i + 1 %></span><%= line %></span><% end %></pre>
-  <% end %>
-</section>
+<% if @job.running? %>
+  <%# the log controller loads the journal and then appends only the lines that
+      follow the cursor it last saw; the section is permanent so the page's
+      every-few-seconds refresh keeps the appended lines instead of wiping them %>
+  <section class="log-section" id="logbox-<%= @job.id.gsub(/[^a-zA-Z0-9]/, "-") %>" data-turbo-permanent
+           data-controller="log"
+           data-log-url-value="<%= log_job_path(@job) %>"
+           data-log-after-value=""
+           data-log-count-value="0"
+           data-log-interval-value="5000">
+    <h2>log <span class="muted" data-log-target="status">loading…</span></h2>
+    <p class="muted" data-log-target="empty">nothing streamed yet</p>
+    <pre class="log" id="log" data-log-target="pre" hidden></pre>
+  </section>
+<% else %>
+  <section class="log-section">
+    <% lines = @log&.lines || [] %>
+    <h2>log <span class="muted"><%= lines.size %> lines<% if @log&.error_at %> · <a href="#L<%= @log.error_at + 1 %>">first error at <%= @log.error_at + 1 %></a><% end %></span></h2>
+    <% if lines.empty? %>
+      <p class="muted"><%= @job.pending? ? "not started yet" : "no log" %></p>
+    <% else %>
+      <pre class="log" id="log"><% lines.each_with_index do |line, i| %><span class="line<%= ' err' if @log&.error_at == i %>" id="L<%= i + 1 %>"><span class="n"><%= i + 1 %></span><%= line %></span><% end %></pre>
+    <% end %>
+  </section>
+<% end %>

@@ -45,14 +45,41 @@ class PagesTest < ActionDispatch::IntegrationTest
     ENV["ARCHCI_WEB_PASSWORD"] = nil
   end
 
-  test "a running job's page refreshes every few seconds and shows the log tail" do
+  test "a running job's page refreshes and wires the log controller to poll deltas" do
     id = "5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64"
     get job_path(id)
     assert_response :success
     # its source package links to the src job that produced it
     assert_select "dl.facts dd a[href=?]", job_path("1-1789344688-hegjon-test/eza/0.23.5-2.1/src"), text: /\.src\.tar\.gz/
     assert_select "body[data-refresh-interval-value='5000'][data-controller='refresh']"
-    assert_includes FakeMaster.calls, [ "log", id ]   # the tail is polled, not streamed
+    # the log is loaded and appended client-side, not rendered (or re-sent) here
+    assert_select "section[data-controller='log'][data-log-url-value=?]", log_job_path(id.tr(",", "/"))
+    assert_select "section[data-controller='log'][data-turbo-permanent]"
+    assert_not_includes FakeMaster.calls.map(&:first), "log"   # show never fetches the log
+  end
+
+  test "the log endpoint returns a running job's lines and a cursor to resume from" do
+    id = "5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64"
+    get log_job_path(id.tr(",", "/"))
+    assert_response :success
+    body = JSON.parse(@response.body)
+    assert_equal "running", body["state"]
+    assert_operator body["lines"].size, :>, 0
+    assert body["cursor"].present?
+    assert_includes FakeMaster.calls, [ "log", id ]   # first poll: no cursor, the whole journal so far
+  end
+
+  test "the log endpoint passes the cursor through to the master" do
+    id = "5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64"
+    get log_job_path(id.tr(",", "/")), params: { after: "s=abc;i=100" }
+    assert_response :success
+    assert_includes FakeMaster.calls, [ "log", id, "s=abc;i=100" ]
+  end
+
+  test "the log endpoint is 404 JSON for an unknown job" do
+    get log_job_path("9-1-x/nope/1-1/x86_64")
+    assert_response :not_found
+    assert_equal "application/json", @response.media_type
   end
 
   test "a finished job's page does not refresh" do

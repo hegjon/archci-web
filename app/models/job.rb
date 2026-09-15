@@ -48,9 +48,11 @@ class Job
   def generated = @data["generated"] && Time.iso8601(@data["generated"])
   def sources_job = @data["sources_job"]
 
-  # the job's log from the master: {"lines" => [...], "error_at" => index or nil}
-  def log_lines
-    Log.new(JSON.parse(Master.run("log", id)))
+  # the job's log from the master: {lines, error_at, state, cursor}. With a
+  # cursor (after), only the journal lines that follow it, so a poll fetches
+  # just the new ones; without, the whole log so far.
+  def log_lines(after = nil)
+    Log.new(JSON.parse(Master.run("log", *[ id, after ].compact)))
   rescue Master::Error, JSON::ParserError => e
     raise Farm::Unavailable, e.message
   end
@@ -59,5 +61,7 @@ class Job
     def lines = data["lines"]
     def error_at = data["error_at"]
     def state = data["state"]
+    def cursor = data["cursor"]
+    def to_h = data
   end
 end
