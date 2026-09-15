@@ -30,6 +30,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "dl.facts dd", text: id
     assert_select "pre.log .line.err", 1
     assert_select "pre.log .line", minimum: 100
+    assert_select "dl.facts dd", text: "1m 43s"   # build time, from the log's start and finish lines
     assert_select "form[action=?]", retry_job_path(id), 0   # no operator password: no buttons
     assert_select "body[data-refresh-interval-value='0']"
   end

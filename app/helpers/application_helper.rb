@@ -35,6 +35,31 @@ module ApplicationHelper
     format("%02d:%02d:%02d", s / 3600, s % 3600 / 60, s % 60)
   end
 
+  # how long the build ran, from the archci-build start and finish lines the
+  # log carries ("... on <worker> at <ts>" and "... finished with N at <ts>"):
+  # "1h 12m" or "4m 30s"; nil if either line is missing (e.g. an old log)
+  def build_time(lines)
+    return if lines.blank?
+
+    stamp = ->(line) { line && line[/ at (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ)/, 1] }
+    start = stamp.call(lines.find { |l| l.start_with?("==> archci-build") && l.include?(" on ") && l.include?(" at ") })
+    finish = stamp.call(lines.reverse_each.find { |l| l.start_with?("==> archci-build finished with") })
+    return unless start && finish
+
+    duration_hms((Time.iso8601(finish) - Time.iso8601(start)).to_i)
+  end
+
+  # a build's length: "1h 12m", "4m 30s" or "45s"
+  def duration_hms(seconds)
+    return "-" if seconds.nil?
+
+    h, rem = seconds.divmod(3600)
+    m, sec = rem.divmod(60)
+    return "#{h}h #{m}m" if h.positive?
+
+    m.positive? ? "#{m}m #{sec}s" : "#{sec}s"
+  end
+
   # megabytes as archci top shows them
   def mem(mb)
     return "-" if mb.blank?
