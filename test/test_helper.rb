@@ -20,6 +20,14 @@ module FakeMaster
       snap = JSON.parse(Rails.root.join("test/fixtures/files/snapshot.json").read)
       j = snap["jobs"].find { |x| x["id"] == id } or raise Master::Error, "archci-web: no job #{id}"
       extra = { "repo" => snap["repo"], "generated" => Time.now.utc.iso8601 }
+      # Archci.build_span, faked: a running job starts when claimed; a finished
+      # one carries the grub log fixture's bracket timestamps (1m 43s)
+      extra["started"], extra["stopped"] =
+        case j["state"]
+        when "running" then [ j["claimed"], nil ]
+        when "done", "failed" then [ "2026-09-10T15:17:25Z", "2026-09-10T15:19:08Z" ]
+        else [ nil, nil ]
+        end
       if j["sources"] && j["arch"] != "src"
         src = snap["jobs"].find { |x| x["arch"] == "src" && x["pkgbase"] == j["pkgbase"] && x["version"] == j["version"] }
         extra["sources_job"] = src["id"] if src

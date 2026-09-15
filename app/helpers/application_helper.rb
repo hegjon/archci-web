@@ -35,25 +35,18 @@ module ApplicationHelper
     format("%02d:%02d:%02d", s / 3600, s % 3600 / 60, s % 60)
   end
 
-  # how long the build ran, from the archci-build start and finish lines the
-  # log carries ("... on <worker> at <ts>" and "... finished with N at <ts>"):
-  # "1h 12m" or "4m 30s"; nil if either line is missing (e.g. an old log)
-  def build_time(lines)
-    return if lines.blank?
+  # how long the build took, from the stable start and stop the master reports
+  # (Archci.build_span): "1h 12m", "4m 30s". A running build counts to now; a
+  # build with no recorded start (an old log, a pending job) shows nothing.
+  def build_time(job)
+    return if job.started.blank?
 
-    stamp = ->(line) { line && line[/ at (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ)/, 1] }
-    start = stamp.call(lines.find { |l| l.start_with?("==> archci-build") && l.include?(" on ") && l.include?(" at ") })
-    finish = stamp.call(lines.reverse_each.find { |l| l.start_with?("==> archci-build finished with") })
-    return unless start && finish
+    finish = if job.stopped.present? then Time.iso8601(job.stopped)
+    elsif job.running? then Time.now
+    end
+    return unless finish
 
-    duration_hms((Time.iso8601(finish) - Time.iso8601(start)).to_i)
-  end
-
-  # how long a running build has gone so far, from when the worker claimed it
-  def build_time_running(job)
-    return if job.claimed.blank?
-
-    duration_hms((Time.now - Time.iso8601(job.claimed)).to_i)
+    duration_hms((finish - Time.iso8601(job.started)).to_i)
   end
 
   # a build's length: "1h 12m", "4m 30s" or "45s"
