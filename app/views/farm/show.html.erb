@@ -3,7 +3,7 @@
   <div class="counter">
     <h2>queue</h2>
     <p>
-      <%= link_to "pending #{@farm.queue['pending']}", jobs_path(q: "pending") %>
+      <%= link_to "pending #{@farm.queue['pending']}", jobs_path(q: "pending") %><% if @farm.queue['held'].to_i.positive? %> <span class="muted" title="pending jobs no claim takes now: outside the farm's filter, or waiting for a source package">(<%= @farm.queue['held'] %> held)</span><% end %>
       <%= link_to "running #{@farm.queue['running']}", jobs_path(q: "running") %>
       <%= link_to "failed #{@farm.queue['failed']}", jobs_path(q: "failed") %>
       <%= link_to "done #{@farm.queue['done']}", jobs_path(q: "done") %>

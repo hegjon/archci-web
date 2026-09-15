@@ -15,9 +15,11 @@ scroll position stay put. The look is a terminal in
 
 ## Pages
 
-- `/` the farm: queue and outstanding counts, built and released per
-  arch, the sourcer's numbers, the hosts with load, disk and memory, the
-  running builds with phase and stats, the newest failures
+- `/` the farm: queue and outstanding counts (with how many pending jobs
+  are held: outside the master's package filter, or waiting for a source
+  package), built and released per arch, the sourcer's numbers, the hosts
+  with load, disk and memory, the running builds with phase and stats, the
+  newest failures
 - `/jobs` every job the master holds, pending to failed, as a tree: one
   row per package, its src, any, x86_64, aarch64 ... jobs beneath it,
   filtered by words that must all appear in a job's state, package,

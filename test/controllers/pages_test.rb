@@ -6,6 +6,8 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "header .brand .repo", "hegjon-test"
     assert_select ".counter", minimum: 4
+    assert_select ".counter a", text: "pending 181"
+    assert_select ".counter .muted", text: "(179 held)"   # pending jobs no claim takes: filtered out, or waiting for sources
     assert_select "table tbody tr td", text: "worker3"
     assert_select "table tbody tr td a", text: "eza 0.23.5-2.1"
     assert_select "footer", /master archci 0\.4\.24-1/
