@@ -27,9 +27,10 @@ scroll position stay put. The look is a terminal in
   `failed` and `sources` in the header are that filter
 - `/jobs/<id>` one job: its story, the source package and network it had,
   its stats while it runs, and its log opened at the first error; retry
-  and requeue buttons for the operator. A running job's log is
-  the tail of what its journal has streamed to the master so far; the page
-  refetches it every few seconds until the job finishes
+  and requeue buttons for the operator. Every log is the job's entries in
+  the workers' journal on the master, nothing is read from files; a
+  running job's is what has streamed so far, and the page refetches the
+  new lines every few seconds until the job finishes
 
 The queue commands ask for the operator's password (`ARCHCI_WEB_PASSWORD`,
 HTTP basic auth); without one configured they are off. The master logs

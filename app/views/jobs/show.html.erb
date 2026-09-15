@@ -10,7 +10,7 @@
     <% if @job.network %><dt>network</dt><dd><%= @job.network %></dd><% end %>
     <% if @job.running? %><dt>phase</dt><dd><%= @job.phase || "-" %> · <%= mem(@job.rss) %> rss, <%= mem(@job.peak) %> peak, <%= mem(@job.build) %> build tree</dd><% end %>
     <% if (bt = build_time(@job)) %><dt>build time</dt><dd><%= bt %><% if (sp = build_split(@job)) %> <span class="muted">·</span> <span class="net-online">online <%= sp[:online] %></span> <span class="muted">·</span> <span class="net-<%= sp[:slice] %>"><%= sp[:slice] %> <%= sp[:build] %></span><% end %></dd><% end %>
-    <dt>log</dt><dd class="muted"><%= @job.running? ? "the journal so far" : @job.log %></dd>
+    <dt>log</dt><dd class="muted"><%= @job.log || "none yet" %><%= " (the journal so far)" if @job.running? %></dd>
   </dl>
   <% if operator_commands? %>
     <div class="actions">
