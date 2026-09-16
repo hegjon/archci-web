@@ -38,7 +38,8 @@ module FakeMaster
     in [ "sse", id ] if id.include?("eza") then Rails.root.join("test/fixtures/files/sse-eza.txt").read
     in [ "sse", id, cursor ] if id.include?("eza") then Rails.root.join("test/fixtures/files/sse-eza-end.txt").read
     in [ "sse", id, * ] then raise Master::Error, "archci-web: no job #{id}"
-    in [ "retry" | "requeue", id ] then "archci-job: #{id} #{args.first}\n"
+    in [ "retry", id ] then "0-1790000000-#{id.split('-', 3).last}\n"   # the new job's id, as archci-job prints it
+    in [ "requeue", id ] then "archci-job: #{id} requeue\n"
     in [ "enqueue", pkg, prio, arch ] then "archci-job: enqueued 0-1-x,#{pkg},1-1,#{arch}\n"
     end
   end

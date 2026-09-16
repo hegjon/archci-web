@@ -55,8 +55,19 @@ class JobsController < ApplicationController
     response.stream.close
   end
 
+  # a retry is a new job in the failed one's place: the master prints its
+  # id, and that is the page to go to (the old id has no job any more)
   def retry
-    master_command("retry", @job.id)
+    out = Master.run("retry", @job.id)
+    Rails.cache.delete("farm/snapshot")
+    new_id = out.lines.map(&:strip).find { |l| l.match?(/\A\d+-\d+-\S+,\S+,\S+,\S+\z/) }
+    if new_id
+      redirect_to job_path(new_id.tr(",", "/")), notice: "retried as a new job, #{new_id}"
+    else
+      redirect_back_or_to root_path, notice: out.strip.presence || "retry done"
+    end
+  rescue Master::Error => e
+    redirect_back_or_to root_path, alert: e.message
   end
 
   def requeue

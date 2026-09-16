@@ -17,7 +17,7 @@ class CommandsTest < ActionDispatch::IntegrationTest
     post retry_job_path(ID), headers: basic("wrong")
     assert_response :unauthorized
     post retry_job_path(ID), headers: basic("s3cret")
-    assert_redirected_to root_path
+    assert_redirected_to job_path("0-1790000000-#{ID.split('-', 3).last}".tr(",", "/"))   # a retry is a new job: its page
     assert_includes FakeMaster.calls, [ "retry", ID ]
     post requeue_job_path(ID), headers: basic("s3cret")
     assert_includes FakeMaster.calls, [ "requeue", ID ]

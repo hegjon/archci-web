@@ -16,7 +16,7 @@
   </dl>
   <% if operator_commands? %>
     <div class="actions">
-      <% if @job.retryable? %><%= button_to "retry (a fresh first attempt)", retry_job_path(@job), class: "btn", form: { data: { turbo_confirm: "Retry #{@job.pkgbase} #{@job.arch} from scratch?" } } %><% end %>
+      <% if @job.retryable? %><%= button_to "retry (a new job)", retry_job_path(@job), class: "btn", form: { data: { turbo_confirm: "Retry #{@job.pkgbase} #{@job.arch} as a new job?" } } %><% end %>
       <% if @job.requeueable? %><%= button_to "requeue (keep the attempts)", requeue_job_path(@job), class: "btn", form: { data: { turbo_confirm: "Put #{@job.pkgbase} #{@job.arch} back in pending?" } } %><% end %>
     </div>
   <% end %>
