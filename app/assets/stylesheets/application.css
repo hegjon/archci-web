@@ -93,8 +93,7 @@ pre.log .line.err { background: #3b2432; color: var(--red); }
 pre.log .line:target { background: #2d2a3e; }
 pre.log .line.phase:target { background: transparent; }   /* a phase line keeps its background when anchored */
 /* archci-build's slice transitions (online deps install -> offline build):
-   just bold and colour the marker lines so the handoff stands out. */
-pre.log .line.phase { font-weight: 700; }
+   the marker lines are coloured like their slice, nothing bold. */
 pre.log .line.phase-online { color: var(--cyan); }
 pre.log .line.phase-offline { color: var(--orange); }
 pre.log .line.phase-loopback { color: var(--yellow); }
@@ -102,8 +101,7 @@ pre.log .line.phase-loopback { color: var(--yellow); }
 .net-online { color: var(--cyan); }
 .net-offline { color: var(--orange); }
 .net-loopback { color: var(--yellow); }
-/* highlight the line number of a phase line (colour + bold, no background) */
-pre.log .line.phase .n { color: inherit; font-weight: 700; }
+/* every line number looks the same, whatever its line */
 
 footer { padding: 0.7rem 1.5rem; border-top: 1px solid var(--border); color: var(--muted); background: var(--bg-dark); }
 footer a { color: var(--fg-dim); }
