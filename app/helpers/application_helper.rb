@@ -35,32 +35,13 @@ module ApplicationHelper
     format("%02d:%02d:%02d", s / 3600, s % 3600 / 60, s % 60)
   end
 
-  # how long the build took, from the stable start and stop the master reports
-  # (Archci.build_span): "1h 12m", "4m 30s". A running build counts to now; a
-  # build with no recorded start (an old log, a pending job) shows nothing.
+  # how long a running build has taken, from its claim (the master's
+  # "started") to now: "1h 12m", "4m 30s". A finished build's time is the
+  # log controller's, from the log's stream. Nothing without a start.
   def build_time(job)
-    return if job.started.blank?
+    return if job.started.blank? || !job.running?
 
-    finish = if job.stopped.present? then Time.iso8601(job.stopped)
-    elsif job.running? then Time.now
-    end
-    return unless finish
-
-    duration_hms((finish - Time.iso8601(job.started)).to_i)
-  end
-
-  # a package build's online (dependency install, with the network) and offline
-  # (the build itself) portions, from the phase timestamps the master reports;
-  # nil when they are missing (a src job, a running build, or an older log).
-  # The build phase is labelled by its slice (offline, or online/loopback when
-  # the package is network-exempt).
-  def build_split(job)
-    return if job.online_at.blank? || job.build_at.blank? || job.stopped.blank?
-
-    online = (Time.iso8601(job.build_at) - Time.iso8601(job.online_at)).to_i
-    build = (Time.iso8601(job.stopped) - Time.iso8601(job.build_at)).to_i
-    { online: duration_hms(online), build: duration_hms(build),
-      slice: job.network == "full" ? "online" : (job.network.presence || "offline") }
+    duration_hms((Time.now - Time.iso8601(job.started)).to_i)
   end
 
   # a build's length: "1h 12m", "4m 30s" or "45s"

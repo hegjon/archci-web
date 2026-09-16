@@ -24,7 +24,7 @@ class Job
   end
 
   %w[id state arch pkgbase version worker origin story sources network phase repo commit profile
-     created claimed finished started stopped online_at build_at log rss peak build load exported].each do |k|
+     created claimed finished started log rss peak build load exported].each do |k|
     define_method(k) { @data[k] }
   end
 
@@ -34,6 +34,7 @@ class Job
   def running? = state == "running"
   def pending? = state == "pending"
   def failed? = state == "failed"
+  def finished? = %w[done failed].include?(state)
   def at = finished || claimed || created
   def arch_rank = ARCH_ORDER.index(arch) || 99
   def retryable? = failed?

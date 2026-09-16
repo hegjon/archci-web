@@ -22,8 +22,8 @@ import { Turbo } from "@hotwired/turbo-rails"
 const SLICES = ["online", "offline", "loopback"]
 
 export default class extends Controller {
-  static targets = ["pre", "status", "empty", "live"]
-  static values = { url: String, r2Url: String, after: String, count: Number, state: String }
+  static targets = ["pre", "status", "empty", "live", "timeLabel", "time"]
+  static values = { url: String, r2Url: String, after: String, count: Number, state: String, times: String }
 
   connect() {
     // A page Turbo restores from its cache (back, or a revisit) brings the
@@ -47,6 +47,7 @@ export default class extends Controller {
       this.render()
       return
     }
+    this.marks = {}
     this.open()
   }
 
@@ -121,6 +122,7 @@ export default class extends Controller {
     if (e.phase) span.classList.add("phase", "phase-" + e.phase)
     if (SLICES.includes(e.phase)) this.slice = e.phase                 // a slice marker opens its slice
     else if (this.slice) span.classList.add("in-" + this.slice)        // the lines in it wear its colour
+    this.mark(e)
     const num = document.createElement("a")
     num.className = "n"
     num.href = "#L" + n
@@ -149,10 +151,58 @@ export default class extends Controller {
     })
   }
 
+  // the build's times, from the entries as they pass: the start record (or
+  // the first line), the deps-install marker (online), the build marker
+  // (build, and its slice), the finish record (or the last line)
+  mark(e) {
+    if (!e.time) return
+    const m = this.marks ||= {}
+    const t = Date.parse(e.time.replace(/(\.\d{3})\d+Z$/, "$1Z"))
+    if (Number.isNaN(t)) return
+    const msg = e.message ?? ""
+    if (m.start == null) m.start = t
+    if (e.event === "start") m.start = t
+    if (m.online == null && msg.startsWith("==> Installing the pacman dependencies")) m.online = t
+    if (m.build == null && (msg.startsWith("==> Building in the archci-") || msg.startsWith("==> Building with "))) { m.build = t; m.slice = e.phase || "offline" }
+    if (e.event === "finish" || msg.startsWith("==> archci-build finished with") || msg.startsWith("==> archci-sourcer finished with")) m.finish = t
+    m.last = t
+  }
+
+  // "1h 12m", "4m 30s", "45s", as the page's helper writes them
+  hms(ms) {
+    const s = Math.max(0, Math.round(ms / 1000))
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
+    if (h > 0) return `${h}h ${m}m`
+    return m > 0 ? `${m}m ${sec}s` : `${sec}s`
+  }
+
+  // the build time fact of a finished job: total, and the online (deps
+  // install) and build (its slice) portions when the markers were seen;
+  // kept in a value on the (permanent) section for a restored page
+  times() {
+    const m = this.marks || {}
+    const stop = m.finish ?? m.last
+    if (m.start == null || stop == null) return
+    let html = this.hms(stop - m.start)
+    if (m.online != null && m.build != null) {
+      const slice = SLICES.includes(m.slice) ? m.slice : "offline"
+      html += ` <span class="muted">·</span> <span class="net-online">online ${this.hms(m.build - m.online)}</span> <span class="muted">·</span> <span class="net-${slice}">${slice} ${this.hms(stop - m.build)}</span>`
+    }
+    this.timesValue = html
+  }
+
+  showTimes() {
+    if (!this.timesValue || !this.hasTimeTarget) return
+    this.timeTarget.innerHTML = this.timesValue
+    this.timeTarget.hidden = false
+    this.timeLabelTarget.hidden = false
+  }
+
   // the end of the log: the first error marked, and, for a job that was
   // running when the page opened, the page's facts are stale: reload
   end(d) {
     this.close()
+    this.times()
     if (d.error_at != null && this.errorLine == null) {
       const line = this.preTarget.children[d.error_at]
       if (line) { line.classList.add("err"); this.errorLine = d.error_at + 1 }
@@ -179,7 +229,7 @@ export default class extends Controller {
   }
 
   render() {
-    if (this.stateValue !== "running") this.liveTarget.hidden = true   // a finished job's log is never live
+    if (this.stateValue !== "running") { this.liveTarget.hidden = true; this.showTimes() }   // a finished job's log is never live; its times are shown
     if (this.countValue === 0) {
       this.emptyTarget.hidden = false
       this.statusTarget.textContent = ""
