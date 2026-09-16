@@ -22,7 +22,7 @@ import { Turbo } from "@hotwired/turbo-rails"
 const SLICES = ["online", "offline", "loopback"]
 
 export default class extends Controller {
-  static targets = ["pre", "status", "empty"]
+  static targets = ["pre", "status", "empty", "live"]
   static values = { url: String, r2Url: String, after: String, count: Number, state: String }
 
   connect() {
@@ -80,10 +80,13 @@ export default class extends Controller {
     })
     this.es.onerror = () => this.error()
     this.statusTarget.textContent = "loading…"
+    // a running job's log comes from the worker's journal as it is written: live
+    this.liveTarget.hidden = !(this.stateValue === "running" && !this.fromR2)
   }
 
   close() {
     if (this.es) { this.es.close(); this.es = null }
+    this.liveTarget.hidden = true
   }
 
   // a connection error, or the end of a static file: from R2 with nothing

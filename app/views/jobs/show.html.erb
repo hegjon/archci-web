@@ -32,7 +32,7 @@
          data-log-after-value=""
          data-log-count-value="0"
          data-log-state-value="<%= @job.state %>">
-  <h2>log <span class="muted" data-log-target="status">loading…</span></h2>
+  <h2>log <span class="badge badge-live" data-log-target="live" hidden title="streamed from the worker's journal as the build writes it">live</span> <span class="muted" data-log-target="status">loading…</span></h2>
   <p class="muted" data-log-target="empty" hidden><%= @job.pending? ? "not started yet" : (@job.running? ? "nothing streamed yet" : "no log") %></p>
   <pre class="log" id="log" data-log-target="pre" hidden></pre>
 </section>

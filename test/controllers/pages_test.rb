@@ -88,6 +88,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     # the log is streamed client-side from the sse action (no export yet: no R2 URL), not rendered here
     assert_select "section[data-controller='log'][data-log-url-value=?][data-log-r2-url-value=''][data-log-state-value='running']", sse_job_path(id.tr(",", "/"))
     assert_select "section[data-controller='log'][data-turbo-permanent]"
+    assert_select "section[data-controller='log'] h2 .badge-live[data-log-target='live'][hidden]", text: "live"   # shown by the controller once the stream is open
     assert_select "dl.facts dd", text: /the journal so far, streamed/
     assert_not_includes FakeMaster.calls.map(&:first), "sse"   # show never fetches the log
     # build time so far (claimed -> now), refreshed by the page's morph
