@@ -8,6 +8,7 @@
     <dt>commit</dt><dd><%= @job.commit %></dd>
     <% if @job.sources %><dt>sources</dt><dd><%= @job.sources_job ? link_to(@job.sources, job_path(@job.sources_job.tr(",", "/"))) : @job.sources %></dd><% end %>
     <% if @job.network %><dt>network</dt><dd><%= @job.network %></dd><% end %>
+    <% if @job.retried_as %><dt>retried as</dt><dd><%= link_to @job.retried_as, job_path(@job.retried_as.tr(",", "/")) %> <span class="muted">a new job; this one is history</span></dd><% end %>
     <% if @job.running? %><dt>phase</dt><dd><%= @job.phase || "-" %> · <%= mem(@job.rss) %> rss, <%= mem(@job.peak) %> peak, <%= mem(@job.build) %> build tree</dd><% end %>
     <% if @job.running? && (bt = build_time(@job)) %><dt>build time</dt><dd><%= bt %></dd><% end %>
     <%# a finished build's time, and its online/build split, the log controller works out from the log's stream (each entry's time, the slice markers, the finish record) %>
