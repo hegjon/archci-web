@@ -10,11 +10,16 @@
 // connection resumes from the last id, which EventSource sends as
 // Last-Event-ID. On a static file EventSource would reconnect after the end
 // of the stream, so it is closed on the end event, or on the first error.
+// Every line is coloured by the slice it ran in: a slice marker (phase
+// online, offline or loopback) opens it, and the lines after it carry
+// in-<slice> until the next marker; stderr and error colours still win.
 // A running job's log is followed like tail -f: while the page is scrolled
 // to its bottom, each line that arrives keeps it there; scrolled up, the
 // page stays where it is (scrolling back down resumes the following).
 import { Controller } from "@hotwired/stimulus"
 import { Turbo } from "@hotwired/turbo-rails"
+
+const SLICES = ["online", "offline", "loopback"]
 
 export default class extends Controller {
   static targets = ["pre", "status", "empty"]
@@ -34,6 +39,10 @@ export default class extends Controller {
     }
     const err = this.preTarget.querySelector(".line.err")
     this.errorLine = err ? Number(err.id.slice(1)) : null   // 1-based line of the first error, once one is seen
+    // the slice the restored lines ended in, for the lines still to come
+    const markers = this.preTarget.querySelectorAll(".line.phase-online, .line.phase-offline, .line.phase-loopback")
+    const last = markers[markers.length - 1]
+    this.slice = last ? SLICES.find((s) => last.classList.contains("phase-" + s)) : null
     if (this.countValue > 0 && this.stateValue !== "running") {
       this.render()
       return
@@ -107,6 +116,8 @@ export default class extends Controller {
     if (cursor) { span.dataset.cursor = cursor; this.afterValue = cursor }
     if (e.priority != null) span.classList.add("pri-" + e.priority)   // stderr lines (3) stand out from stdout (6)
     if (e.phase) span.classList.add("phase", "phase-" + e.phase)
+    if (SLICES.includes(e.phase)) this.slice = e.phase                 // a slice marker opens its slice
+    else if (this.slice) span.classList.add("in-" + this.slice)        // the lines in it wear its colour
     const num = document.createElement("a")
     num.className = "n"
     num.href = "#L" + n
