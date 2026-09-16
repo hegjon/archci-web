@@ -57,6 +57,10 @@ table.tree th, table.tree td { padding-top: 0.08rem; padding-bottom: 0.08rem; li
 table.tree tr.pkg td { background: var(--bg-dark); border-top: 1px solid var(--border-hi); padding-top: 0.4rem; }
 table.tree td.branch { padding-left: 1rem; }
 
+/* an element the controllers hide with the hidden attribute stays hidden
+   whatever display its class sets (the attribute's browser style loses
+   to any author rule, so .badge's inline-block showed a hidden badge) */
+[hidden] { display: none !important; }
 .badge { display: inline-block; padding: 0 0.45rem; border-radius: 3px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid; }
 .badge-pending { color: var(--blue); border-color: var(--blue); }
 .badge-running { color: var(--yellow); border-color: var(--yellow); }
