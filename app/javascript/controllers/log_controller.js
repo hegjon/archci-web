@@ -10,6 +10,9 @@
 // connection resumes from the last id, which EventSource sends as
 // Last-Event-ID. On a static file EventSource would reconnect after the end
 // of the stream, so it is closed on the end event, or on the first error.
+// A running job's log is followed like tail -f: while the page is scrolled
+// to its bottom, each line that arrives keeps it there; scrolled up, the
+// page stays where it is (scrolling back down resumes the following).
 import { Controller } from "@hotwired/stimulus"
 import { Turbo } from "@hotwired/turbo-rails"
 
@@ -97,6 +100,7 @@ export default class extends Controller {
   entry(e, cursor) {
     this.received += 1
     const n = this.countValue + 1
+    const follow = this.stateValue === "running" && (this.following || this.atBottom())   // decided before the page grows
     const span = document.createElement("span")
     span.className = "line"
     span.id = "L" + n
@@ -112,7 +116,23 @@ export default class extends Controller {
     this.preTarget.append(span)
     this.countValue = n
     this.render()
-    if (n === 1) this.jump()
+    if (n === 1 && this.jump()) return   // a line the URL names wins over the following
+    if (follow) this.follow()
+  }
+
+  // the page is at its bottom (within a line's height)
+  atBottom() {
+    return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 20
+  }
+
+  // keep the bottom in view: once per frame, however many lines arrived
+  follow() {
+    if (this.following) return
+    this.following = true
+    requestAnimationFrame(() => {
+      this.following = false
+      window.scrollTo({ top: document.documentElement.scrollHeight })
+    })
   }
 
   // the end of the log: the first error marked, and, for a job that was
@@ -132,11 +152,12 @@ export default class extends Controller {
   }
 
   // the line the URL's #L<n> names, once the log is there (the browser could
-  // not scroll to it before), else the first error
+  // not scroll to it before), else the first error; whether there was one
   jump() {
     const m = window.location.hash.match(/^#L(\d+)$/)
     const target = m ? document.getElementById("L" + m[1]) : (this.errorLine && document.getElementById("L" + this.errorLine))
     if (target) target.scrollIntoView({ block: "center" })
+    return Boolean(target)
   }
 
   render() {
