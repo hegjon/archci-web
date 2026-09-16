@@ -158,6 +158,10 @@ export default class extends Controller {
       if (line) { line.classList.add("err"); this.errorLine = d.error_at + 1 }
     }
     if (this.stateValue === "running" && d.state && d.state !== "running") {
+      // the section is permanent across the visit: its state must say the
+      // job is finished, or connect() would open the stream (and the live
+      // badge) again on the reloaded page
+      this.stateValue = d.state
       Turbo.visit(window.location.href, { action: "replace" })
       return
     }
@@ -175,6 +179,7 @@ export default class extends Controller {
   }
 
   render() {
+    if (this.stateValue !== "running") this.liveTarget.hidden = true   // a finished job's log is never live
     if (this.countValue === 0) {
       this.emptyTarget.hidden = false
       this.statusTarget.textContent = ""
