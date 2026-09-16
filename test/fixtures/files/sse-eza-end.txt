@@ -1,0 +1,6 @@
+data: {"time":"2026-09-14T01:35:00.096000Z","message":"==> archci-build finished with 0 at 2026-09-14T01:50:00Z: eza-0.23.5-2.1-riscv64-abc.pkg.tar.zst","event":"finish"}
+id: s=8d5e1f3aa0c94b1c9e2a1b7a1d9d4f0e;i=5;b=3c1e7b3f7ac54ac1b8b8bd3d8b1b5f7d;m=65b677140d000;t=65b677140d000;x=3
+
+event: end
+data: {"state":"done","error_at":null,"finished":"2026-09-14T01:50:00Z","rc":0}
+

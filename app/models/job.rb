@@ -24,7 +24,7 @@ class Job
   end
 
   %w[id state arch pkgbase version worker origin story sources network phase repo commit profile
-     created claimed finished started stopped online_at build_at log rss peak build load].each do |k|
+     created claimed finished started stopped online_at build_at log rss peak build load exported].each do |k|
     define_method(k) { @data[k] }
   end
 
@@ -48,22 +48,17 @@ class Job
   def generated = @data["generated"] && Time.iso8601(@data["generated"])
   def sources_job = @data["sources_job"]
 
-  # the job's log from the master as journal entries (archci web entries):
-  # {entries: [{__CURSOR, __REALTIME_TIMESTAMP, MESSAGE, phase?}], error_at,
-  # state, cursor}, what the browser builds the log window from. With a
-  # cursor (after), only the entries that follow it, so a poll of a running
-  # job fetches just the new ones; without, the whole log so far.
-  def log_entries(after = nil)
-    Log.new(JSON.parse(Master.run("entries", *[ id, after ].compact)))
-  rescue Master::Error, JSON::ParserError => e
-    raise Farm::Unavailable, e.message
-  end
+  # the exported log's URL on R2 (ARCHCI_RELEASE_URL, the release the master
+  # publishes to): <url>/<repo>/log/<pkgbase>/<version>/<arch>/<file>, the
+  # file the job record names (exported=, by archci-publish once the journal
+  # had the whole log). nil before the export, for a job the journal held
+  # nothing of ("none"), or without the URL. The browser opens an
+  # EventSource on it: the same stream `archci web sse` gives live, stored
+  # once, zstd, decoded by the browser itself (Content-Encoding).
+  def log_url
+    base = ENV["ARCHCI_RELEASE_URL"].presence or return nil
+    return nil unless exported.present? && exported != "none"
 
-  Log = Struct.new(:data) do
-    def entries = data["entries"]
-    def error_at = data["error_at"]
-    def state = data["state"]
-    def cursor = data["cursor"]
-    def to_h = data
+    "#{base.chomp('/')}/#{repo}/log/#{pkgbase}/#{version}/#{arch}/#{exported}"
   end
 end

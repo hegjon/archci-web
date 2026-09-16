@@ -29,12 +29,18 @@ scroll position stay put. The look is a terminal in
 - `/jobs/<id>` one job: its story, the source package and network it had,
   its stats while it runs, and its log opened at the first error; retry
   and requeue buttons for the operator. The log window is built in the
-  browser from the job's journal entries (`archci web entries` on the
-  master, proxied at `/jobs/<id>/log`): each line with the time it was
-  written as the line number's tooltip and its journal cursor on the line,
-  nothing read from files; a running job's is what has streamed so far,
-  and the page fetches only the entries after the last cursor every few
-  seconds until the job finishes
+  browser from the log's stream of server-sent events, the framing the
+  master's `archci web sse` writes: the job, one event per journal line
+  (its time as the line number's tooltip, its journal cursor as the event
+  id), the end. A finished job's log is the file archci-publish exported
+  to the release (`ARCHCI_RELEASE_URL`,
+  `<repo>/log/<pkgbase>/<version>/<arch>/<file>.sse.zst`), which the
+  browser's `EventSource` reads straight from R2 and decodes itself
+  (`Content-Encoding: zstd`; the bucket needs a CORS rule for this site's
+  origin); when that fails (not exported yet, no CORS, a browser without
+  zstd) `/jobs/<id>/sse` serves the same stream from the master. A running
+  job's log streams from `/jobs/<id>/sse` as it grows, the master polled
+  by cursor; a dropped connection resumes from `Last-Event-ID`
 
 The queue commands ask for the operator's password (`ARCHCI_WEB_PASSWORD`,
 HTTP basic auth); without one configured they are off. The master logs
@@ -75,7 +81,9 @@ precompile, restart).
 
 In development, `ARCHCI_MASTER=archci@<host> ARCHCI_SSH_KEY=~/.ssh/archci_web_key
 bin/rails server` talks to a real master; `bin/rails test` runs against a
-recorded snapshot (`test/fixtures/files`), so the tests need no master.
+recorded snapshot and two recorded logs (`test/fixtures/files`), so the
+tests need no master. `ARCHCI_SSE_POLL_SECONDS` (2) is how often a running
+job's stream asks the master for more.
 
 ## Layout
 

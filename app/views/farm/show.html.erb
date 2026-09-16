@@ -23,10 +23,11 @@
       <h2>released</h2>
       <p>
         <% @farm.signer["release"].to_h.each do |arch, r| %>
-          <span class="pair"><%= arch %> <b><%= r["packages"] || "unreachable" %></b><%= " pkg" if r["packages"] %></span>
+          <span class="pair"><%= arch %> <b><%= r["packages"] || "none yet" %></b><%= " pkg" if r["packages"] %></span>
         <% end %>
-        <% waiting = @farm.signer.dig("staging", "waiting") %>
-        <span class="pair muted">unsigned <b><%= waiting %></b> in staging<%= " (oldest #{duration_short(@farm.signer.dig('staging', 'oldest_s'))})" if waiting.to_i.positive? %></span>
+        <% waiting = @farm.signer.dig("unsigned", "waiting") %>
+        <span class="pair muted">unsigned <b><%= waiting %></b> in the pool<%= " (oldest #{duration_short(@farm.signer.dig('unsigned', 'oldest_s'))})" if waiting.to_i.positive? %></span>
+        <% if @farm.signer["rejected"].to_i.positive? %><span class="pair warn">rejected by the signer <b><%= @farm.signer["rejected"] %></b></span><% end %>
       </p>
     </div>
   <% end %>

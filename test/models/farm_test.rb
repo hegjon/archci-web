@@ -40,11 +40,15 @@ class FarmTest < ActiveSupport::TestCase
     assert_not job.matches?(%w[grub aarch64])
   end
 
-  test "a job's log comes from the master as journal entries with its first error" do
-    log = Farm.current.job("5-1788893881-hegjon-test,grub,2:2.14-1,x86_64").log_entries
-    assert_operator log.entries.size, :>, 100
-    assert_kind_of Integer, log.error_at
-    assert_match(/error|ERROR/, log.entries[log.error_at]["MESSAGE"])
+  test "a finished job's exported log is on the release, under the repo's log/ prefix" do
+    job = Farm.current.job("5-1788893881-hegjon-test,grub,2:2.14-1,x86_64")
+    assert_equal "grub-2:2.14-1-x86_64-1788967045-3c1e7b3f7ac54ac1b8b8bd3d8b1b5f7d.sse.zst", job.exported
+    assert_equal "https://r2.example/hegjon-test/log/grub/2:2.14-1/x86_64/#{job.exported}", job.log_url
+    assert_nil Farm.current.job("5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64").log_url   # running: not exported
+    ENV["ARCHCI_RELEASE_URL"] = ""
+    assert_nil job.log_url   # no release URL configured: the master serves it
+  ensure
+    ENV["ARCHCI_RELEASE_URL"] = "https://r2.example"
   end
 
   test "an unreachable master is Farm::Unavailable" do

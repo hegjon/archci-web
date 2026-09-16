@@ -1,10 +1,15 @@
 ENV["RAILS_ENV"] ||= "test"
+ENV["ARCHCI_SSE_POLL_SECONDS"] = "0"   # a running job's stream polls without waiting
+ENV["ARCHCI_RELEASE_URL"] = "https://r2.example"
 require_relative "../config/environment"
 require "rails/test_help"
 
-# The master, faked: the fixtures are a real snapshot and two logs taken
-# from the test instance with the web key (as journal entries, archci web
-# entries). Commands are recorded.
+# The master, faked: the fixtures are a real snapshot from the test instance
+# and two logs from it as the sse stream (framed with archci's own
+# Archci.sse_entry from the journal entries recorded with the web key): the
+# grub failure, whole, and the running eza build, first what there is, then,
+# asked again with a cursor, one more line and the end. Commands are
+# recorded.
 module FakeMaster
   def self.calls = @calls ||= []
 
@@ -38,9 +43,10 @@ module FakeMaster
         extra["sources_job"] = src["id"] if src
       end
       JSON.generate(j.merge(extra))
-    in [ "entries", id, * ] if id.include?("grub") then Rails.root.join("test/fixtures/files/entries.json").read
-    in [ "entries", id, * ] if id.include?("eza") then Rails.root.join("test/fixtures/files/running-entries.json").read
-    in [ "entries", id, * ] then raise Master::Error, "archci-web: no job #{id}"
+    in [ "sse", id ] if id.include?("grub") then Rails.root.join("test/fixtures/files/sse-grub.txt").read
+    in [ "sse", id ] if id.include?("eza") then Rails.root.join("test/fixtures/files/sse-eza.txt").read
+    in [ "sse", id, cursor ] if id.include?("eza") then Rails.root.join("test/fixtures/files/sse-eza-end.txt").read
+    in [ "sse", id, * ] then raise Master::Error, "archci-web: no job #{id}"
     in [ "retry" | "requeue", id ] then "archci-job: #{id} #{args.first}\n"
     in [ "enqueue", pkg, prio, arch ] then "archci-job: enqueued 0-1-x,#{pkg},1-1,#{arch}\n"
     end

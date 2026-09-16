@@ -1,0 +1,15 @@
+event: job
+data: {"id":"5-1789349629-hegjon-test,eza,0.23.5-2.1,riscv64","repo":"hegjon-test","arch":"riscv64","pkgbase":"eza","version":"0.23.5-2.1","commit":"e28ad7757c4dc75cb734fd5e47d8685a799bf643","profile":"extra","created":"2026-09-14T01:33:49Z","worker":"jonny-ryzen9-riscv64-1","claimed":"2026-09-14T01:33:49Z","sources":"eza-0.23.5-2.1.src.tar.gz","attempt":1,"load":"2.44","mem":"10.8","disk":"52.8","cpus":"32","vendor":"AsrockRack","archci":"0.4.24-1","phase":"build","cpu_us":"61192499","cpu_dt":"61411640","rss":"1522","peak":"4900","build":"403968","mtime":"2026-09-14T01:45:17Z","state":"running","origin":"extra","log":"/var/lib/archci/logs/hegjon-test/eza/0.23.5-2.1/riscv64/attempt-1.log","story":"(story)","invocation":"3c1e7b3f7ac54ac1b8b8bd3d8b1b5f7d"}
+
+data: {"time":"2026-09-14T01:35:00.000000Z","message":"==> Making package: eza 0.23.5-2.1"}
+id: s=8d5e1f3aa0c94b1c9e2a1b7a1d9d4f0e;i=1;b=3c1e7b3f7ac54ac1b8b8bd3d8b1b5f7d;m=65b67713f5900;t=65b67713f5900;x=0
+
+data: {"time":"2026-09-14T01:35:00.032000Z","message":"==> Retrieving sources..."}
+id: s=8d5e1f3aa0c94b1c9e2a1b7a1d9d4f0e;i=2;b=3c1e7b3f7ac54ac1b8b8bd3d8b1b5f7d;m=65b67713fd600;t=65b67713fd600;x=1
+
+data: {"time":"2026-09-14T01:35:00.064000Z","message":"  -> found eza-0.23.5.tar.gz"}
+id: s=8d5e1f3aa0c94b1c9e2a1b7a1d9d4f0e;i=3;b=3c1e7b3f7ac54ac1b8b8bd3d8b1b5f7d;m=65b6771405300;t=65b6771405300;x=2
+
+data: {"time":"2026-09-14T01:35:00.096000Z","message":"==> Starting build()..."}
+id: s=8d5e1f3aa0c94b1c9e2a1b7a1d9d4f0e;i=4;b=3c1e7b3f7ac54ac1b8b8bd3d8b1b5f7d;m=65b677140d000;t=65b677140d000;x=3
+

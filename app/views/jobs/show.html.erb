@@ -10,7 +10,7 @@
     <% if @job.network %><dt>network</dt><dd><%= @job.network %></dd><% end %>
     <% if @job.running? %><dt>phase</dt><dd><%= @job.phase || "-" %> · <%= mem(@job.rss) %> rss, <%= mem(@job.peak) %> peak, <%= mem(@job.build) %> build tree</dd><% end %>
     <% if (bt = build_time(@job)) %><dt>build time</dt><dd><%= bt %><% if (sp = build_split(@job)) %> <span class="muted">·</span> <span class="net-online">online <%= sp[:online] %></span> <span class="muted">·</span> <span class="net-<%= sp[:slice] %>"><%= sp[:slice] %> <%= sp[:build] %></span><% end %></dd><% end %>
-    <dt>log</dt><dd class="muted"><%= @job.log || "none yet" %><%= " (the journal so far)" if @job.running? %></dd>
+    <dt>log</dt><dd class="muted"><% if @job.log_url %><%= link_to @job.exported, @job.log_url %> <span class="muted">on the release</span><% elsif @job.running? %>the journal so far, streamed<% elsif @job.pending? %>none yet<% else %>the journal on the master<%= ", not exported yet" if @job.exported.blank? %><% end %></dd>
   </dl>
   <% if operator_commands? %>
     <div class="actions">
@@ -20,17 +20,18 @@
   <% end %>
 </section>
 
-<%# The log window is built by the log controller from the journal entries
-    the log action returns (each line with its time and cursor); a running
-    job's is then appended every few seconds with only the entries after the
-    cursor last seen. The section is permanent so the page's refresh keeps it. %>
+<%# The log window is built by the log controller from the events of the
+    job's log stream: an EventSource on the exported file on R2 for a
+    finished job (r2-url), else on the sse action, which streams a running
+    job's log as it grows. The section is permanent so the page's refresh
+    keeps it. %>
 <section class="log-section" id="logbox-<%= @job.id.gsub(/[^a-zA-Z0-9]/, "-") %>" data-turbo-permanent
          data-controller="log"
-         data-log-url-value="<%= log_job_path(@job) %>"
+         data-log-url-value="<%= sse_job_path(@job) %>"
+         data-log-r2-url-value="<%= @job.log_url %>"
          data-log-after-value=""
          data-log-count-value="0"
-         data-log-state-value="<%= @job.state %>"
-         data-log-interval-value="<%= @job.running? ? 5000 : 0 %>">
+         data-log-state-value="<%= @job.state %>">
   <h2>log <span class="muted" data-log-target="status">loading…</span></h2>
   <p class="muted" data-log-target="empty" hidden><%= @job.pending? ? "not started yet" : (@job.running? ? "nothing streamed yet" : "no log") %></p>
   <pre class="log" id="log" data-log-target="pre" hidden></pre>
