@@ -66,6 +66,9 @@ table.tree td.branch { padding-left: 1rem; }
 .badge-running { color: var(--yellow); border-color: var(--yellow); }
 .badge-done { color: var(--green); border-color: var(--green); }
 .badge-failed { color: var(--red); border-color: var(--red); }
+/* a tiny spinner where a value is still being worked out */
+.spinner { display: inline-block; width: 0.75em; height: 0.75em; border: 2px solid var(--muted); border-top-color: transparent; border-radius: 50%; vertical-align: -0.1em; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 /* the log window's stream is the journal, live: a red badge with a blinking dot */
 .badge-live { color: var(--red); border-color: var(--red); vertical-align: middle; }
 .badge-live::before { content: ""; display: inline-block; width: 0.5em; height: 0.5em; border-radius: 50%; background: var(--red); margin-right: 0.35em; animation: live-blink 1.2s ease-in-out infinite; }

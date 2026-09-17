@@ -39,8 +39,8 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "section.job h2", /grub 2:2\.14-1/
     assert_select "dl.facts dd", text: id
     # a finished build's time (and its online/build split) is the log controller's, from the stream: a hidden slot until then
-    assert_select "dl.facts dt#build-time-label[hidden]", text: "build time"
-    assert_select "dl.facts dd#build-time[hidden]"
+    assert_select "dl.facts dt", text: "build time"
+    assert_select "dl.facts dd#build-time .spinner"   # until the controller has the stream
     assert_select "dl.facts dt", text: "peak memory"
     assert_select "dl.facts dd", text: /\A942M .* 239M build tree\z/   # the last heartbeat's numbers
     assert_select "dl.facts dd", text: /\A\d+m \d+s/, count: 0   # nothing computed server-side

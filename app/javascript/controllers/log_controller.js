@@ -192,13 +192,13 @@ export default class extends Controller {
   }
 
   // the slot is in the page's facts list, outside this (permanent) section,
-  // so it is found by id, not as a target
+  // so it is found by id, not as a target; it holds a spinner until the
+  // times are known, or a dash once the stream is over without them
   showTimes() {
-    const dd = document.getElementById("build-time"), dt = document.getElementById("build-time-label")
-    if (!this.timesValue || !dd || !dt) return
-    dd.innerHTML = this.timesValue
-    dd.hidden = false
-    dt.hidden = false
+    const dd = document.getElementById("build-time")
+    if (!dd) return
+    if (this.timesValue) dd.innerHTML = this.timesValue
+    else if (!this.es && this.stateValue !== "running") dd.innerHTML = `<span class="muted" title="no start and end in the log">–</span>`
   }
 
   // the end of the log: the first error marked, and, for a job that was
