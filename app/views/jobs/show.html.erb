@@ -26,15 +26,14 @@
   <% end %>
 </section>
 
-<%# The PKGBUILD the job was built from, in a panel closed by default: the
-    frame inside loads from the pkgbuild action only once the panel is
-    opened (loading="lazy"), so a page view costs no call to the master.
-    Permanent, so a running job's page refresh keeps it open and loaded. %>
+<%# The PKGBUILD as built, in a panel closed by default: the log controller
+    fills it from the log's stream, where the worker's PKGBUILD record
+    carries the file (its "pkgbuild"); a log from before the worker logged
+    it leaves the note. Permanent, so a running job's refresh keeps it. %>
 <details class="pkgbuild" id="pkgbuild-<%= @job.id.gsub(/[^a-zA-Z0-9]/, "-") %>" data-turbo-permanent>
   <summary>PKGBUILD <span class="muted">as built, at <%= @job.commit.to_s[0, 12] %></span></summary>
-  <turbo-frame id="pkgbuild" src="<%= pkgbuild_job_path(@job) %>" loading="lazy">
-    <p class="muted">loading…</p>
-  </turbo-frame>
+  <p class="muted" id="pkgbuild-missing"><%= @job.pending? ? "not built yet" : "not in this log (a build from before the worker logged it; the commit above has it)" %></p>
+  <pre class="code" id="pkgbuild" hidden></pre>
 </details>
 
 <%# The log window is built by the log controller from the events of the

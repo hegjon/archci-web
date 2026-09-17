@@ -1,8 +1,9 @@
 // The log window, built from the job's log as a stream of server-sent
 // events, the framing the master's `archci web sse` writes: "job" with the
 // job's fields, one message per journal entry (data: time, priority, pid,
-// message, phase; id: the entry's journal cursor) and "end" once the job has
-// finished (state, error_at, rc). A finished job's log is the exported file
+// message, phase; the PKGBUILD record's carries the file as pkgbuild; id:
+// the entry's journal cursor) and "end" once the job has finished (state,
+// error_at, rc). A finished job's log is the exported file
 // on R2 (r2-url), the same bytes stored once and decoded by the browser
 // itself (Content-Encoding: gzip); when that fails (not exported yet, no
 // CORS) the sse action serves it from the master.
@@ -123,6 +124,7 @@ export default class extends Controller {
     if (SLICES.includes(e.phase)) this.slice = e.phase                 // a slice marker opens its slice
     else if (this.slice) span.classList.add("in-" + this.slice)        // the lines in it wear its colour
     this.mark(e)
+    if (e.pkgbuild != null) this.showPkgbuild(e.pkgbuild)
     const num = document.createElement("a")
     num.className = "n"
     num.href = "#L" + n
@@ -134,6 +136,18 @@ export default class extends Controller {
     this.render()
     if (n === 1 && this.jump()) return   // a line the URL names wins over the following
     if (follow) this.follow()
+  }
+
+  // the PKGBUILD record's file into the page's panel (outside this section,
+  // so by id, as the build time is); the panel is permanent, so a restored
+  // or refreshed page keeps what it got
+  showPkgbuild(text) {
+    const pre = document.getElementById("pkgbuild")
+    if (!pre) return
+    pre.textContent = text
+    pre.hidden = false
+    const note = document.getElementById("pkgbuild-missing")
+    if (note) note.hidden = true
   }
 
   // the page is at its bottom (within a line's height)

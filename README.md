@@ -26,10 +26,10 @@ scroll position stay put. The look is a terminal in
   filtered by words that must all appear in a job's state, package,
   version, arch, worker or origin (`failed aarch64 python`); `running`,
   `failed` and `sources` in the header are that filter
-- `/jobs/<id>/pkgbuild` the PKGBUILD the job was built from, at its
-  commit, as a turbo frame; the job page's PKGBUILD panel loads it when
-  opened (the master's `archci web pkgbuild`)
 - `/jobs/<id>` one job: its story, the source package and network it had,
+  the PKGBUILD as built (a closed panel, filled from the log's PKGBUILD
+  record by the log controller; the commit links to the file in the
+  repository),
   its stats while it runs, and its log opened at the first error; retry
   and requeue buttons for the operator. The log window is built in the
   browser from the log's stream of server-sent events, the framing the

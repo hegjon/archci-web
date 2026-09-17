@@ -6,7 +6,7 @@ class JobsController < ApplicationController
   include ActionController::Live
 
   before_action :require_operator, only: %i[retry requeue]
-  before_action :find_job, only: %i[show sse pkgbuild retry requeue]
+  before_action :find_job, only: %i[show sse retry requeue]
 
   def index
     @words = params[:q].to_s.split
@@ -55,17 +55,6 @@ class JobsController < ApplicationController
     response.stream.close
   end
 
-  # the PKGBUILD the job was built from, at its commit, as the master's
-  # `archci web pkgbuild` shows it: a turbo frame the job page's PKGBUILD
-  # panel loads when opened (lazy), so a page view costs no extra call
-  def pkgbuild
-    @pkgbuild = Master.run("pkgbuild", @job.id)
-    render layout: false
-  rescue Master::Error => e
-    @error = e.message
-    render layout: false
-  end
-
   # a retry is a new job in the failed one's place: the master prints its
   # id, and that is the page to go to (the old id has no job any more)
   def retry
@@ -94,7 +83,7 @@ class JobsController < ApplicationController
     @job = @farm ? @farm.job(id) : Job.find(id)
     return if @job
 
-    if %w[sse pkgbuild].include?(action_name)
+    if action_name == "sse"
       render plain: "no job #{id}", status: :not_found
     else
       render "shared/not_found", status: :not_found
