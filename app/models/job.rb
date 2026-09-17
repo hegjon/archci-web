@@ -55,7 +55,7 @@ class Job
   # had the whole log). nil before the export, for a job the journal held
   # nothing of ("none"), or without the URL. The browser opens an
   # EventSource on it: the same stream `archci web sse` gives live, stored
-  # once, zstd, decoded by the browser itself (Content-Encoding).
+  # once, gzip, decoded by the browser itself (Content-Encoding).
   def log_url
     base = ENV["ARCHCI_RELEASE_URL"].presence or return nil
     return nil unless exported.present? && exported != "none"

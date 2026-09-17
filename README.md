@@ -34,11 +34,11 @@ scroll position stay put. The look is a terminal in
   (its time as the line number's tooltip, its journal cursor as the event
   id), the end. A finished job's log is the file archci-publish exported
   to the release (`ARCHCI_RELEASE_URL`,
-  `<repo>/log/<pkgbase>/<version>/<arch>/<file>.sse.zst`), which the
+  `<repo>/log/<pkgbase>/<version>/<arch>/<file>.sse.gz`), which the
   browser's `EventSource` reads straight from R2 and decodes itself
-  (`Content-Encoding: zstd`; the bucket needs a CORS rule for this site's
-  origin); when that fails (not exported yet, no CORS, a browser without
-  zstd) `/jobs/<id>/sse` serves the same stream from the master. A running
+  (`Content-Encoding: gzip`; the bucket needs a CORS rule for this site's
+  origin); when that fails (not exported yet, no CORS) `/jobs/<id>/sse`
+  serves the same stream from the master. A running
   job's log streams from `/jobs/<id>/sse` as it grows, the master polled
   by cursor; a dropped connection resumes from `Last-Event-ID`
 

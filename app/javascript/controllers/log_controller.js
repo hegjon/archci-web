@@ -4,8 +4,8 @@
 // message, phase; id: the entry's journal cursor) and "end" once the job has
 // finished (state, error_at, rc). A finished job's log is the exported file
 // on R2 (r2-url), the same bytes stored once and decoded by the browser
-// itself (Content-Encoding: zstd); when that fails (not exported yet, no
-// CORS, a browser without zstd) the sse action serves it from the master.
+// itself (Content-Encoding: gzip); when that fails (not exported yet, no
+// CORS) the sse action serves it from the master.
 // A running job's log comes from the sse action as it grows; a dropped
 // connection resumes from the last id, which EventSource sends as
 // Last-Event-ID. On a static file EventSource would reconnect after the end
