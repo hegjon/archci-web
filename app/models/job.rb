@@ -4,7 +4,7 @@
 # fields plus its state (the queue it is in), origin and story.
 class Job
   STATES = %w[pending running done failed].freeze
-  ARCH_ORDER = %w[src any x86_64 aarch64 riscv64].freeze
+  ARCH_ORDER = %w[src any x86_64 x86_64_v4 aarch64 riscv64].freeze
   FIELDS = %w[state pkgbase version arch worker origin].freeze   # what a filter word is matched against
   MAX_ATTEMPTS = 3
 
