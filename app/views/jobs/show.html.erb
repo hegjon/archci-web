@@ -14,6 +14,8 @@
     <%# a finished build's time, and its online/build split, the log controller works out from the log's stream (each entry's time, the slice markers, the finish record) %>
     <%# by id, not a Stimulus target: the facts live outside the log controller's (permanent) section %>
     <% if @job.finished? %><dt id="build-time-label" hidden>build time</dt><dd id="build-time" hidden></dd><% end %>
+    <%# the last heartbeat's numbers, kept in the job file when the build ended %>
+    <% if @job.finished? && @job.peak.present? %><dt>peak memory</dt><dd><%= mem(@job.peak) %><% if @job.build.present? %> <span class="muted">·</span> <%= mem(@job.build) %> build tree<% end %></dd><% end %>
     <dt>log</dt><dd class="muted"><% if @job.log_url %><%= link_to @job.exported, @job.log_url %> <span class="muted">on the release</span><% elsif @job.running? %>the journal so far, streamed<% elsif @job.pending? %>none yet<% else %>the journal on the master<%= ", not exported yet" if @job.exported.blank? %><% end %></dd>
   </dl>
   <% if operator_commands? %>
