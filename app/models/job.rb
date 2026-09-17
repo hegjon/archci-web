@@ -24,8 +24,22 @@ class Job
   end
 
   %w[id state arch pkgbase version worker origin story sources network phase repo commit profile
-     created claimed finished started log rss peak build load exported retried_as].each do |k|
+     created claimed finished started log rss peak build load exported retried_as pkgbuilds pkgbuilds_dir].each do |k|
     define_method(k) { @data[k] }
+  end
+
+  # the PKGBUILD at the job's commit on the repository's web site, for
+  # GitHub and GitLab URLs (the master names the repository, ARCHCI_PKGBUILDS_URL);
+  # nil for any other host, where the page's own PKGBUILD panel still shows it
+  def pkgbuild_url
+    return nil unless commit.present? && pkgbuilds.present?
+
+    base = pkgbuilds.delete_suffix(".git")
+    path = "#{pkgbuilds_dir.presence || 'pkgbuilds'}/#{pkgbase}/PKGBUILD"
+    case base
+    when %r{\Ahttps://github\.com/} then "#{base}/blob/#{commit}/#{path}"
+    when %r{\Ahttps://gitlab\.com/} then "#{base}/-/blob/#{commit}/#{path}"
+    end
   end
 
   def attempt = @data["attempt"].to_i

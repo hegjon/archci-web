@@ -1,0 +1,8 @@
+<%# the PKGBUILD panel's frame: the job page's <turbo-frame id="pkgbuild"> loads this when opened %>
+<turbo-frame id="pkgbuild">
+  <% if @error %>
+    <p class="muted"><%= @error %></p>
+  <% else %>
+    <pre class="code"><%= @pkgbuild %></pre>
+  <% end %>
+</turbo-frame>

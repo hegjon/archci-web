@@ -89,6 +89,10 @@ dl.facts dd { margin: 0; }
 .btn { background: var(--bg-dark); color: var(--yellow); border: 1px solid var(--yellow); border-radius: 3px; padding: 0.3rem 0.7rem; font: inherit; cursor: pointer; }
 .btn:hover { background: var(--yellow); color: var(--bg-dark); }
 
+/* the PKGBUILD panel: closed by default, the file in the log's look */
+details.pkgbuild { margin: 0.5rem 0 1rem; }
+details.pkgbuild summary { cursor: pointer; color: var(--fg); }
+pre.code { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 4px; padding: 0.6rem 0.8rem; margin: 0.4rem 0 0; overflow-x: auto; font-size: 12px; line-height: 1.45; white-space: pre; }
 pre.log { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 4px; padding: 0.6rem 0; margin: 0; overflow-x: auto; font-size: 12px; line-height: 1.45; }
 pre.log .line { display: block; padding: 0 0.8rem; white-space: pre; }
 pre.log .line .n { display: inline-block; width: 3.5rem; color: var(--muted); user-select: none; text-align: right; padding-right: 0.8rem; text-decoration: none; }

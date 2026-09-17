@@ -55,6 +55,33 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "body[data-refresh-interval-value='0']"
   end
 
+  test "a job page has a closed PKGBUILD panel whose frame loads lazily, and links the commit to the repository" do
+    id = "5-1788893881-hegjon-test,grub,2:2.14-1,x86_64"
+    get job_path(id)
+    assert_response :success
+    assert_select "details.pkgbuild[data-turbo-permanent] summary", /PKGBUILD/
+    assert_select "details.pkgbuild[open]", 0
+    assert_select "details.pkgbuild turbo-frame#pkgbuild[loading='lazy'][src=?]", pkgbuild_job_path(id.tr(",", "/"))
+    assert_select "dl.facts dd a[href=?]", "https://github.com/hegjon/omarchy-pkgs/blob/#{Job.find(id).commit}/pkgbuilds/grub/PKGBUILD"
+    assert_not_includes FakeMaster.calls.map(&:first), "pkgbuild"   # the page view fetches nothing
+  end
+
+  test "the pkgbuild endpoint is the frame with the PKGBUILD as built, escaped, or the master's message" do
+    id = "5-1788893881-hegjon-test,grub,2:2.14-1,x86_64"
+    get pkgbuild_job_path(id.tr(",", "/"))
+    assert_response :success
+    assert_select "turbo-frame#pkgbuild pre.code", /\A# Maintainer: someone <a@b\.c>\npkgname=grub/ do |pre|
+      assert_includes pre.first.to_html, "&lt;a@b.c&gt;"   # escaped on the wire
+    end
+    assert_not_includes response.body, "<title>"   # no layout: the frame alone
+    id2 = "0-1789340966-hegjon-test,eza,0.23.5-2,x86_64"
+    get pkgbuild_job_path(id2.tr(",", "/"))
+    assert_response :success
+    assert_select "turbo-frame#pkgbuild p.muted", /no PKGBUILD/
+    get pkgbuild_job_path("9-1-x/nope/1-1/x86_64")
+    assert_response :not_found
+  end
+
   test "the sse endpoint streams a finished job's whole log: the job event, one event per line with its cursor, the end" do
     id = "5-1788893881-hegjon-test,grub,2:2.14-1,x86_64"
     get sse_job_path(id.tr(",", "/"))
