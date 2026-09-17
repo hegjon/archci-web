@@ -22,7 +22,7 @@ import { Turbo } from "@hotwired/turbo-rails"
 const SLICES = ["online", "offline", "loopback"]
 
 export default class extends Controller {
-  static targets = ["pre", "status", "empty", "live", "timeLabel", "time"]
+  static targets = ["pre", "status", "empty", "live"]
   static values = { url: String, r2Url: String, after: String, count: Number, state: String, times: String }
 
   connect() {
@@ -191,11 +191,14 @@ export default class extends Controller {
     this.timesValue = html
   }
 
+  // the slot is in the page's facts list, outside this (permanent) section,
+  // so it is found by id, not as a target
   showTimes() {
-    if (!this.timesValue || !this.hasTimeTarget) return
-    this.timeTarget.innerHTML = this.timesValue
-    this.timeTarget.hidden = false
-    this.timeLabelTarget.hidden = false
+    const dd = document.getElementById("build-time"), dt = document.getElementById("build-time-label")
+    if (!this.timesValue || !dd || !dt) return
+    dd.innerHTML = this.timesValue
+    dd.hidden = false
+    dt.hidden = false
   }
 
   // the end of the log: the first error marked, and, for a job that was

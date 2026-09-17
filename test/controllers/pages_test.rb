@@ -39,8 +39,8 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "section.job h2", /grub 2:2\.14-1/
     assert_select "dl.facts dd", text: id
     # a finished build's time (and its online/build split) is the log controller's, from the stream: a hidden slot until then
-    assert_select "dl.facts dt[data-log-target='timeLabel'][hidden]", text: "build time"
-    assert_select "dl.facts dd[data-log-target='time'][hidden]"
+    assert_select "dl.facts dt#build-time-label[hidden]", text: "build time"
+    assert_select "dl.facts dd#build-time[hidden]"
     assert_select "dl.facts dd", text: /\A\d+m \d+s/, count: 0   # nothing computed server-side
     # the log window is built in the browser from the log's stream: the exported file on R2 for a finished job, the sse action behind it
     r2 = "https://r2.example/hegjon-test/log/grub/2:2.14-1/x86_64/grub-2:2.14-1-x86_64-1788967045-3c1e7b3f7ac54ac1b8b8bd3d8b1b5f7d.sse.zst"

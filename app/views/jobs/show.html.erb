@@ -12,7 +12,8 @@
     <% if @job.running? %><dt>phase</dt><dd><%= @job.phase || "-" %> · <%= mem(@job.rss) %> rss, <%= mem(@job.peak) %> peak, <%= mem(@job.build) %> build tree</dd><% end %>
     <% if @job.running? && (bt = build_time(@job)) %><dt>build time</dt><dd><%= bt %></dd><% end %>
     <%# a finished build's time, and its online/build split, the log controller works out from the log's stream (each entry's time, the slice markers, the finish record) %>
-    <% if @job.finished? %><dt data-log-target="timeLabel" hidden>build time</dt><dd data-log-target="time" hidden></dd><% end %>
+    <%# by id, not a Stimulus target: the facts live outside the log controller's (permanent) section %>
+    <% if @job.finished? %><dt id="build-time-label" hidden>build time</dt><dd id="build-time" hidden></dd><% end %>
     <dt>log</dt><dd class="muted"><% if @job.log_url %><%= link_to @job.exported, @job.log_url %> <span class="muted">on the release</span><% elsif @job.running? %>the journal so far, streamed<% elsif @job.pending? %>none yet<% else %>the journal on the master<%= ", not exported yet" if @job.exported.blank? %><% end %></dd>
   </dl>
   <% if operator_commands? %>
