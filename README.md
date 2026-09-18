@@ -28,8 +28,8 @@ scroll position stay put. The look is a terminal in
   `failed` and `sources` in the header are that filter
 - `/jobs/<id>` one job: its story, the source package and network it had,
   the PKGBUILD as built (a closed panel, filled from the log's PKGBUILD
-  record by the log controller; the commit links to the file in the
-  repository),
+  record by the log controller; the commit links to the package directory in
+  the repository),
   its stats while it runs, and its log opened at the first error; retry
   and requeue buttons for the operator. The log window is built in the
   browser from the log's stream of server-sent events, the framing the

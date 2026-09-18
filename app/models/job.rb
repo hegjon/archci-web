@@ -28,17 +28,18 @@ class Job
     define_method(k) { @data[k] }
   end
 
-  # the PKGBUILD at the job's commit on the repository's web site, for
-  # GitHub and GitLab URLs (the master names the repository, ARCHCI_PKGBUILDS_URL);
-  # nil for any other host, where the page's own PKGBUILD panel still shows it
-  def pkgbuild_url
+  # the package's directory at the job's commit on the repository's web
+  # site (the PKGBUILD, its patches, package.json), for GitHub and GitLab
+  # URLs (the master names the repository, ARCHCI_PKGBUILDS_URL); nil for
+  # any other host, where the page's own PKGBUILD panel still shows the file
+  def package_dir_url
     return nil unless commit.present? && pkgbuilds.present?
 
     base = pkgbuilds.delete_suffix(".git")
-    path = "#{pkgbuilds_dir.presence || 'pkgbuilds'}/#{pkgbase}/PKGBUILD"
+    path = "#{pkgbuilds_dir.presence || 'pkgbuilds'}/#{pkgbase}/"
     case base
-    when %r{\Ahttps://github\.com/} then "#{base}/blob/#{commit}/#{path}"
-    when %r{\Ahttps://gitlab\.com/} then "#{base}/-/blob/#{commit}/#{path}"
+    when %r{\Ahttps://github\.com/} then "#{base}/tree/#{commit}/#{path}"
+    when %r{\Ahttps://gitlab\.com/} then "#{base}/-/tree/#{commit}/#{path}"
     end
   end
 

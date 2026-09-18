@@ -63,7 +63,7 @@ class PagesTest < ActionDispatch::IntegrationTest
     assert_select "details.pkgbuild[open]", 0
     assert_select "details.pkgbuild pre.code#pkgbuild[hidden]"
     assert_select "details.pkgbuild p#pkgbuild-missing", /not logged/
-    assert_select "dl.facts dd a[href=?]", "https://github.com/hegjon/omarchy-pkgs/blob/#{Job.find(id).commit}/pkgbuilds/grub/PKGBUILD"
+    assert_select "dl.facts dd a[href=?]", "https://github.com/hegjon/omarchy-pkgs/tree/#{Job.find(id).commit}/pkgbuilds/grub/"
     assert_equal %w[job], FakeMaster.calls.map(&:first).uniq   # the page view asks the master for the job alone
   end
 
