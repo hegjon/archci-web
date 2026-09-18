@@ -32,7 +32,7 @@
     it leaves the note. Permanent, so a running job's refresh keeps it. %>
 <details class="pkgbuild" id="pkgbuild-<%= @job.id.gsub(/[^a-zA-Z0-9]/, "-") %>" data-turbo-permanent>
   <summary>PKGBUILD <span class="muted">as built, at <%= @job.commit.to_s[0, 12] %></span></summary>
-  <p class="muted" id="pkgbuild-missing"><%= @job.pending? ? "not built yet" : "not in this log (a build from before the worker logged it; the commit above has it)" %></p>
+  <p class="muted" id="pkgbuild-missing"><%= @job.pending? ? "not built yet" : "not logged" %></p>
   <pre class="code" id="pkgbuild" hidden></pre>
 </details>
 
