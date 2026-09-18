@@ -123,7 +123,7 @@ export default class extends Controller {
     if (e.phase) span.classList.add("phase", "phase-" + e.phase)
     if (SLICES.includes(e.phase)) this.slice = e.phase                 // a slice marker opens its slice
     else if (this.slice) span.classList.add("in-" + this.slice)        // the lines in it wear its colour
-    this.mark(e)
+    this.mark(e, n)
     if (e.pkgbuild != null) this.showPkgbuild(e.pkgbuild)
     const num = document.createElement("a")
     num.className = "n"
@@ -167,17 +167,18 @@ export default class extends Controller {
 
   // the build's times, from the entries as they pass: the start record (or
   // the first line), the deps-install marker (online), the build marker
-  // (build, and its slice), the finish record (or the last line)
-  mark(e) {
+  // (build, and its slice), the finish record (or the last line); with each
+  // marker's line number, so the build time fact links to where a phase began
+  mark(e, n) {
     if (!e.time) return
     const m = this.marks ||= {}
     const t = Date.parse(e.time.replace(/(\.\d{3})\d+Z$/, "$1Z"))
     if (Number.isNaN(t)) return
     const msg = e.message ?? ""
-    if (m.start == null) m.start = t
-    if (e.event === "start") m.start = t
-    if (m.online == null && msg.startsWith("==> Installing the pacman dependencies")) m.online = t
-    if (m.build == null && (msg.startsWith("==> Building in the archci-") || msg.startsWith("==> Building with "))) { m.build = t; m.slice = e.phase || "offline" }
+    if (m.start == null) { m.start = t; m.startLine = n }
+    if (e.event === "start") { m.start = t; m.startLine = n }
+    if (m.online == null && msg.startsWith("==> Installing the pacman dependencies")) { m.online = t; m.onlineLine = n }
+    if (m.build == null && (msg.startsWith("==> Building in the archci-") || msg.startsWith("==> Building with "))) { m.build = t; m.slice = e.phase || "offline"; m.buildLine = n }
     if (e.event === "finish" || msg.startsWith("==> archci-build finished with") || msg.startsWith("==> archci-sourcer finished with")) m.finish = t
     m.last = t
   }
@@ -197,10 +198,13 @@ export default class extends Controller {
     const m = this.marks || {}
     const stop = m.finish ?? m.last
     if (m.start == null || stop == null) return
-    let html = this.hms(stop - m.start)
+    // each span links to the line its phase began at (#L<n>: the log's
+    // line anchors), the total to the start record
+    let html = m.startLine ? `<a href="#L${m.startLine}" title="the start of the build, line ${m.startLine}">${this.hms(stop - m.start)}</a>` : this.hms(stop - m.start)
     if (m.online != null && m.build != null) {
       const slice = SLICES.includes(m.slice) ? m.slice : "offline"
-      html += ` <span class="muted">·</span> <span class="net-online">online ${this.hms(m.build - m.online)}</span> <span class="muted">·</span> <span class="net-${slice}">${slice} ${this.hms(stop - m.build)}</span>`
+      html += ` <span class="muted">·</span> <a class="net-online" href="#L${m.onlineLine}" title="the dependencies install began at line ${m.onlineLine}">online ${this.hms(m.build - m.online)}</a>` +
+              ` <span class="muted">·</span> <a class="net-${slice}" href="#L${m.buildLine}" title="the build began at line ${m.buildLine}">${slice} ${this.hms(stop - m.build)}</a>`
     }
     this.timesValue = html
   }
